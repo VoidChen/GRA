@@ -46,6 +46,21 @@ def draw(pixmap, label):
     painter.end()
     label.setPixmap(pixmap)
 
+class CustomLabel(QLabel):
+    def __init__(self, parent=None, flags=Qt.WindowFlags()):
+        super(CustomLabel, self).__init__(parent, flags)
+
+    def mousePressEvent(self, event):
+        mousemap = {1: 'Left', 2: 'Right'}
+        print('Mouse {} press at ({}, {})'.format(mousemap[event.button()], event.x(), event.y()))
+
+    def mouseMoveEvent(self, event):
+        print('Mouse at ({}, {})'.format(event.x(), event.y()))
+
+    def mouseReleaseEvent(self, event):
+        mousemap = {1: 'Left', 2: 'Right'}
+        print('Mouse {} release at ({}, {})'.format(mousemap[event.button()], event.x(), event.y()))
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
@@ -69,7 +84,7 @@ if __name__ == '__main__':
     #pixmap
     pixmap = QPixmap(600, 400)
 
-    label = QLabel()
+    label = CustomLabel()
     label.setPixmap(pixmap)
 
     #layout
