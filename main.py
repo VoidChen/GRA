@@ -2,6 +2,7 @@ import sys
 from random import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
 
 class Point:
     def __init__(self, x, y):
@@ -22,6 +23,19 @@ class Polygon:
         for i in range(self.vertex_num):
             print('Vertex {}:'.format(i))
             self.vertices[i].print()
+
+    def draw(self, painter, conf, fill = False):
+        trans = QTransform()
+        trans.scale(4, 4)
+        trans.translate(conf[0], conf[1])
+        trans.rotate(conf[2])
+        poly = trans.map(QPolygonF([QPointF(v.x, v.y) for v in self.vertices]))
+        painter.drawPolygon(poly)
+        if fill:
+            brush = QBrush(painter.pen().color())
+            path = QPainterPath()
+            path.addPolygon(poly)
+            painter.fillPath(path, brush)
 
 class Robot:
     def __init__(self, data):
@@ -53,6 +67,10 @@ class Robot:
             print('Control point {}:'.format(i))
             self.controls[i].print()
 
+    def draw(self, painter):
+        for x in self.polygons:
+            x.draw(painter, self.init)
+
 class Obstacle:
     def __init__(self, data):
         #read polygons
@@ -71,6 +89,13 @@ class Obstacle:
 
         print('Init conf: {}'.format(self.init))
 
+    def draw(self, painter):
+        for x in self.polygons:
+            x.draw(painter, self.init)
+
+robots = []
+obstacles = []
+
 def read_data():
     #robot.dat
     data = []
@@ -80,13 +105,9 @@ def read_data():
                 data += line.split()
 
     robot_num = int(data.pop(0))
-    robots = []
+    global robots
     for _ in range(robot_num):
         robots.append(Robot(data))
-
-    for i in range(robot_num):
-        print('Robot {}:'.format(i))
-        robots[i].print()
 
     #obstacle.dat
     data = []
@@ -96,18 +117,21 @@ def read_data():
                 data += line.split()
 
     obstacle_num = int(data.pop(0))
-    obstacles = []
+    global obstacles
     for _ in range(obstacle_num):
         obstacles.append(Obstacle(data))
 
-    for i in range(obstacle_num):
-        print('Obstacle {}:'.format(i))
-        obstacles[i].print()
-
 def draw(pixmap, label):
     painter = QPainter(pixmap)
+
+    painter.setPen(QPen(QColor(0, 255, 0), 1))
+    for x in robots:
+        x.draw(painter)
+
     painter.setPen(QPen(QColor(255, 0, 0), 1))
-    painter.drawLine(randrange(500), randrange(300), randrange(500), randrange(300))
+    for x in obstacles:
+        x.draw(painter)
+
     painter.end()
     label.setPixmap(pixmap)
 
@@ -121,15 +145,15 @@ if __name__ == '__main__':
     widget.show()
 
     #button
-    btn_read = QPushButton('read data')
+    btn_read = QPushButton('Read data')
     btn_read.resize(100, 50)
     btn_read.clicked.connect(read_data)
     btn_read.show()
 
-    btn_print = QPushButton('print data')
-    btn_print.resize(100, 50)
-    #btn_print.clicked.connect(lambda: draw(pixmap, label))
-    btn_print.show()
+    btn_draw = QPushButton('Draw data')
+    btn_draw.resize(100, 50)
+    btn_draw.clicked.connect(lambda: draw(pixmap, label))
+    btn_draw.show()
 
     #pixmap
     pixmap = QPixmap(600, 400)
@@ -140,7 +164,7 @@ if __name__ == '__main__':
     #layout
     layout_btn = QHBoxLayout()
     layout_btn.addWidget(btn_read)
-    layout_btn.addWidget(btn_print)
+    layout_btn.addWidget(btn_draw)
 
     layout = QVBoxLayout()
     layout.addWidget(label)
