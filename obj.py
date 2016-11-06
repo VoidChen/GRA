@@ -35,7 +35,7 @@ class Polygon:
             path.addPolygon(poly)
             painter.fillPath(path, brush)
 
-class Robot:
+class Item:
     def __init__(self, data):
         #read polygons
         self.polygon_num = int(data.pop(0))
@@ -43,8 +43,27 @@ class Robot:
         for _ in range(self.polygon_num):
             self.polygons.append(Polygon(data))
 
-        #read conf
+        #read init conf
         self.init = [float(data.pop(0)), float(data.pop(0)), float(data.pop(0))]
+
+    def print(self):
+        #print polygons
+        for i in range(self.polygon_num):
+            print('Polygon {}:'.format(i))
+            self.polygons[i].print()
+
+        #print init conf
+        print('Init conf: {}'.format(self.init))
+
+    def draw(self, painter):
+        for x in self.polygons:
+            x.draw(painter, self.init)
+
+class Robot(Item):
+    def __init__(self, data):
+        super(Robot, self).__init__(data)
+
+        #read goal conf
         self.goal = [float(data.pop(0)), float(data.pop(0)), float(data.pop(0))]
 
         #read control points
@@ -54,39 +73,16 @@ class Robot:
             self.controls.append(Point(float(data.pop(0)), float(data.pop(0))))
 
     def print(self):
-        for i in range(self.polygon_num):
-            print('Polygon {}:'.format(i))
-            self.polygons[i].print()
+        super().print()
 
-        print('Init conf: {}'.format(self.init))
+        #print goal conf
         print('Goal conf: {}'.format(self.goal))
 
+        #print control points
         for i in range(self.control_num):
             print('Control point {}:'.format(i))
             self.controls[i].print()
 
-    def draw(self, painter):
-        for x in self.polygons:
-            x.draw(painter, self.init)
-
-class Obstacle:
+class Obstacle(Item):
     def __init__(self, data):
-        #read polygons
-        self.polygon_num = int(data.pop(0))
-        self.polygons = []
-        for _ in range(self.polygon_num):
-            self.polygons.append(Polygon(data))
-
-        #read conf
-        self.init = [float(data.pop(0)), float(data.pop(0)), float(data.pop(0))]
-
-    def print(self):
-        for i in range(self.polygon_num):
-            print('Polygon {}:'.format(i))
-            self.polygons[i].print()
-
-        print('Init conf: {}'.format(self.init))
-
-    def draw(self, painter):
-        for x in self.polygons:
-            x.draw(painter, self.init)
+        super(Obstacle, self).__init__(data)

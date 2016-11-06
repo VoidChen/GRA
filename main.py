@@ -4,6 +4,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
+items = []
 robots = []
 obstacles = []
 
@@ -32,15 +33,20 @@ def read_data():
     for _ in range(obstacle_num):
         obstacles.append(Obstacle(data))
 
+    global items
+    items = robots + obstacles
+
 def draw(pixmap, label):
     painter = QPainter(pixmap)
 
-    painter.setPen(QPen(QColor(0, 255, 0), 1))
-    for x in robots:
-        x.draw(painter)
+    for x in items:
+        if type(x) is Robot:
+            painter.setPen(QPen(QColor(0, 255, 0), 1))
+        elif type(x) is Obstacle:
+            painter.setPen(QPen(QColor(255, 0, 0), 1))
+        else:
+            painter.setPen(QPen(QColor(0, 0, 255), 1))
 
-    painter.setPen(QPen(QColor(255, 0, 0), 1))
-    for x in obstacles:
         x.draw(painter)
 
     painter.end()
