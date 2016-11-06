@@ -28,12 +28,14 @@ class Polygon:
     def toQPolygonF(self):
         return QPolygonF([v.toQPointF() for v in self.vertices])
 
-    def draw(self, painter, conf, fill = False):
+    def configured(self, conf):
         trans = QTransform()
-        trans.scale(4, 4)
         trans.translate(conf[0], conf[1])
         trans.rotate(conf[2])
-        poly = trans.map(self.toQPolygonF())
+        return trans.map(self.toQPolygonF())
+
+    def draw(self, painter, conf, fill = False):
+        poly = self.configured(conf)
         painter.drawPolygon(poly)
         if fill:
             brush = QBrush(painter.pen().color())
@@ -50,7 +52,27 @@ class Item:
             self.polygons.append(Polygon(data))
 
         #read init conf
-        self.init = [float(data.pop(0)), float(data.pop(0)), float(data.pop(0))]
+        self.init_conf = [float(data.pop(0)), float(data.pop(0)), float(data.pop(0))]
+
+        #set temp conf
+        self.temp_conf = [0.0, 0.0, 0.0]
+
+    def scale(self, scale):
+        self.init_conf = [self.init_conf[0]*scale, self.init_conf[1]*scale, self.init_conf[2]]
+        for poly in self.polygons:
+            for v in poly.vertices:
+                v.x *= scale
+                v.y *= scale
+
+    def conf(self):
+        return [init+temp for init, temp in zip(self.init_conf, self.temp_conf)]
+
+    def contains(self, x, y):
+        for poly in self.polygons:
+            if poly.configured(self.conf()).containsPoint(QPointF(x, y), Qt.WindingFill):
+                return True
+        else:
+            return False
 
     def print(self):
         #print polygons
@@ -59,18 +81,18 @@ class Item:
             self.polygons[i].print()
 
         #print init conf
-        print('Init conf: {}'.format(self.init))
+        print('Init conf: {}'.format(self.init_conf))
 
     def draw(self, painter):
-        for x in self.polygons:
-            x.draw(painter, self.init)
+        for poly in self.polygons:
+            poly.draw(painter, self.conf())
 
 class Robot(Item):
     def __init__(self, data):
         super(Robot, self).__init__(data)
 
         #read goal conf
-        self.goal = [float(data.pop(0)), float(data.pop(0)), float(data.pop(0))]
+        self.goal_conf = [float(data.pop(0)), float(data.pop(0)), float(data.pop(0))]
 
         #read control points
         self.control_num = int(data.pop(0))
@@ -78,11 +100,15 @@ class Robot(Item):
         for _ in range(self.control_num):
             self.controls.append(Point(float(data.pop(0)), float(data.pop(0))))
 
+    def scale(self, scale):
+        super(Robot, self).scale(scale)
+        self.goal_vconf = [self.goal_conf[0]*scale, self.goal_conf[1]*scale, self.goal_conf[2]]
+
     def print(self):
         super().print()
 
         #print goal conf
-        print('Goal conf: {}'.format(self.goal))
+        print('Goal conf: {}'.format(self.goal_conf))
 
         #print control points
         for i in range(self.control_num):

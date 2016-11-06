@@ -5,8 +5,6 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
 items = []
-robots = []
-obstacles = []
 
 def read_data():
     #robot.dat
@@ -17,7 +15,7 @@ def read_data():
                 data += line.split()
 
     robot_num = int(data.pop(0))
-    global robots
+    robots = []
     for _ in range(robot_num):
         robots.append(Robot(data))
 
@@ -29,14 +27,23 @@ def read_data():
                 data += line.split()
 
     obstacle_num = int(data.pop(0))
-    global obstacles
+    obstacles = []
     for _ in range(obstacle_num):
         obstacles.append(Obstacle(data))
 
     global items
     items = robots + obstacles
 
-def draw(pixmap, label):
+def scale_data(scale):
+    for x in items:
+        x.scale(scale)
+
+def read_and_scale(scale):
+    read_data()
+    scale_data(scale)
+
+def draw_data(label):
+    pixmap = QPixmap(label.width(), label.height())
     painter = QPainter(pixmap)
 
     for x in items:
@@ -50,6 +57,7 @@ def draw(pixmap, label):
         x.draw(painter)
 
     painter.end()
+    label.clear()
     label.setPixmap(pixmap)
 
 class CustomLabel(QLabel):
@@ -57,41 +65,61 @@ class CustomLabel(QLabel):
         super(CustomLabel, self).__init__(parent, flags)
 
     def mousePressEvent(self, event):
-        mousemap = {1: 'Left', 2: 'Right'}
-        print('Mouse {} press at ({}, {})'.format(mousemap[event.button()], event.x(), event.y()))
+        #save press button&point
+        global mouse_press
+        mouse_press = {'button': event.button(), 'x': event.x(), 'y': event.y()}
+
+        #detect selected item
+        global selected
+        for i in range(len(items)):
+            if items[i].contains(float(event.x()), float(event.y())):
+                selected = i
+                break
+        else:
+            selected = -1
+
+        print('Mouse {} press at ({}, {}), item {} selected.'.format(event.button(), event.x(), event.y(), selected))
 
     def mouseMoveEvent(self, event):
+        #calc temp_conf and update label
+        if selected is not -1:
+            items[selected].temp_conf = [event.x() - mouse_press['x'], event.y() - mouse_press['y'], 0.0]
+            draw_data(self)
         print('Mouse at ({}, {})'.format(event.x(), event.y()))
 
     def mouseReleaseEvent(self, event):
-        mousemap = {1: 'Left', 2: 'Right'}
-        print('Mouse {} release at ({}, {})'.format(mousemap[event.button()], event.x(), event.y()))
+        #save temp_conf to init_conf and reset
+        items[selected].init_conf = items[selected].conf()
+        items[selected].temp_conf = [0.0, 0.0, 0.0]
+        print('Mouse {} release at ({}, {})'.format(event.button(), event.x(), event.y()))
 
 if __name__ == '__main__':
+    width = 600
+    height = 400
+    scale = 4
     app = QApplication(sys.argv)
 
     #main widget
     widget = QWidget()
-    widget.resize(600, 400)
+    widget.resize(width, height)
     widget.setWindowTitle('GRA')
     widget.show()
+
+    #label
+    label = CustomLabel()
+    label.resize(width, height)
+    draw_data(label)
 
     #button
     btn_read = QPushButton('Read data')
     btn_read.resize(100, 50)
-    btn_read.clicked.connect(read_data)
+    btn_read.clicked.connect(lambda: read_and_scale(scale))
     btn_read.show()
 
     btn_draw = QPushButton('Draw data')
     btn_draw.resize(100, 50)
-    btn_draw.clicked.connect(lambda: draw(pixmap, label))
+    btn_draw.clicked.connect(lambda: draw_data(label))
     btn_draw.show()
-
-    #pixmap
-    pixmap = QPixmap(600, 400)
-
-    label = CustomLabel()
-    label.setPixmap(pixmap)
 
     #layout
     layout_btn = QHBoxLayout()
