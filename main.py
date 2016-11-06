@@ -1,4 +1,5 @@
 import sys
+import math
 from obj import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
@@ -83,14 +84,25 @@ class CustomLabel(QLabel):
     def mouseMoveEvent(self, event):
         #calc temp_conf and update label
         if selected is not -1:
-            items[selected].temp_conf = [event.x() - mouse_press['x'], event.y() - mouse_press['y'], 0.0]
+            #translate
+            if mouse_press['button'] == Qt.LeftButton:
+                items[selected].temp_conf = [event.x() - mouse_press['x'], event.y() - mouse_press['y'], 0.0]
+
+            #rotate
+            elif mouse_press['button'] == Qt.RightButton:
+                angle_new = math.atan2(event.y() - items[selected].init_conf[1], event.x() - items[selected].init_conf[0])
+                angle_old = math.atan2(mouse_press['y'] - items[selected].init_conf[1], mouse_press['x'] - items[selected].init_conf[0])
+                items[selected].temp_conf = [0.0, 0.0, math.degrees(angle_new - angle_old)]
+
             draw_data(self)
+
         print('Mouse at ({}, {})'.format(event.x(), event.y()))
 
     def mouseReleaseEvent(self, event):
         #save temp_conf to init_conf and reset
-        items[selected].init_conf = items[selected].conf()
-        items[selected].temp_conf = [0.0, 0.0, 0.0]
+        if selected is not -1:
+            items[selected].init_conf = items[selected].conf()
+            items[selected].temp_conf = [0.0, 0.0, 0.0]
         print('Mouse {} release at ({}, {})'.format(event.button(), event.x(), event.y()))
 
 if __name__ == '__main__':
