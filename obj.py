@@ -10,6 +10,9 @@ class Point:
     def print(self):
         print('({}, {})'.format(self.x, self.y))
 
+    def toQPointF(self):
+        return QPointF(self.x, self.y)
+
 class Polygon:
     def __init__(self, data):
         self.vertex_num = int(data.pop(0))
@@ -22,12 +25,15 @@ class Polygon:
             print('Vertex {}:'.format(i))
             self.vertices[i].print()
 
+    def toQPolygonF(self):
+        return QPolygonF([v.toQPointF() for v in self.vertices])
+
     def draw(self, painter, conf, fill = False):
         trans = QTransform()
         trans.scale(4, 4)
         trans.translate(conf[0], conf[1])
         trans.rotate(conf[2])
-        poly = trans.map(QPolygonF([QPointF(v.x, v.y) for v in self.vertices]))
+        poly = trans.map(self.toQPolygonF())
         painter.drawPolygon(poly)
         if fill:
             brush = QBrush(painter.pen().color())
