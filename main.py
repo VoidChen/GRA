@@ -1,5 +1,6 @@
 import sys
 import math
+import copy
 from obj import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
@@ -32,8 +33,19 @@ def read_data():
     for _ in range(obstacle_num):
         obstacles.append(Obstacle(data))
 
+    #combine to items list
     global items
-    items = robots + obstacles
+    items = []
+    for x in robots:
+        items.append(x)
+        items[-1].type = 'init'
+
+        items.append(copy.deepcopy(x))
+        items[-1].init_conf = x.goal_conf
+        items[-1].type = 'goal'
+
+    for x in obstacles:
+        items.append(x)
 
 def scale_data(scale):
     for x in items:
@@ -49,11 +61,14 @@ def draw_data(label):
 
     for x in items:
         if type(x) is Robot:
-            painter.setPen(QPen(QColor(0, 255, 0), 1))
+            if x.type is 'init':
+                painter.setPen(QPen(QColor(0, 255, 0), 1))
+            elif x.type is 'goal':
+                painter.setPen(QPen(QColor(0, 255, 255), 1))
         elif type(x) is Obstacle:
             painter.setPen(QPen(QColor(255, 0, 0), 1))
         else:
-            painter.setPen(QPen(QColor(0, 0, 255), 1))
+            painter.setPen(QPen(QColor(255, 255, 255), 1))
 
         x.draw(painter)
 
@@ -108,7 +123,7 @@ class CustomLabel(QLabel):
 if __name__ == '__main__':
     width = 600
     height = 400
-    scale = 4
+    scale = 3
     app = QApplication(sys.argv)
 
     #main widget

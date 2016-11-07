@@ -90,6 +90,7 @@ class Item:
 class Robot(Item):
     def __init__(self, data):
         super(Robot, self).__init__(data)
+        self.type = ''
 
         #read goal conf
         self.goal_conf = [float(data.pop(0)), float(data.pop(0)), float(data.pop(0))]
