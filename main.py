@@ -1,6 +1,7 @@
 import sys
 import math
 import copy
+import itertools
 from obj import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
@@ -76,6 +77,13 @@ def draw_data(label):
     label.clear()
     label.setPixmap(pixmap)
 
+    collision_test()
+
+def collision_test():
+    for item_pair in itertools.combinations(range(len(items)), 2):
+        if Item.collision(items[item_pair[0]], items[item_pair[1]]):
+            print('collision: {}, {}'.format(*item_pair))
+
 class CustomLabel(QLabel):
     def __init__(self, parent=None, flags=Qt.WindowFlags()):
         super(CustomLabel, self).__init__(parent, flags)
@@ -121,6 +129,7 @@ class CustomLabel(QLabel):
         print('Mouse {} release at ({}, {})'.format(event.button(), event.x(), event.y()))
 
 if __name__ == '__main__':
+    #init
     width = 600
     height = 400
     scale = 3
