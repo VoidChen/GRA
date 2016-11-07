@@ -1,0 +1,9 @@
+#Input data
+*.dat
+
+#Python Cache
+*.py[cod]
+__pycache__
+
+#Vim Cache
+*.swp
