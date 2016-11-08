@@ -58,6 +58,7 @@ def read_and_scale(scale):
 
 def draw_data(label):
     pixmap = QPixmap(label.width(), label.height())
+    pixmap.fill(Qt.black)
     painter = QPainter(pixmap)
 
     for x in items:
