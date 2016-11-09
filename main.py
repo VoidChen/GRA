@@ -78,8 +78,6 @@ def draw_data(label):
     label.clear()
     label.setPixmap(pixmap)
 
-    collision_test()
-
 def collision_test():
     for item_pair in itertools.combinations(range(len(items)), 2):
         if Item.collision(items[item_pair[0]], items[item_pair[1]]):
@@ -131,9 +129,9 @@ class CustomLabel(QLabel):
 
 if __name__ == '__main__':
     #init
-    width = 600
+    width = 400
     height = 400
-    scale = 3
+    scale = 400/128
     app = QApplication(sys.argv)
 
     #main widget
