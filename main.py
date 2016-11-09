@@ -131,6 +131,23 @@ def build_pfield(label, start):
                 pfield[i][j] = max_potential + 1
     draw()
 
+def pfield_box_update(box):
+    box.clear()
+    box.addItem('No potential field')
+    for i in range(1, len(items), 2):
+        if type(items[i]) is Robot:
+            for j in range(len(items[i].controls)):
+                box.addItem('Robot {} ControlPoint {}'.format(int(i/2), j), QVariant([i, j]))
+        else:
+            break
+
+def pfield_box_changed(box, label):
+    if box.currentIndex() is not 0:
+        rc = box.currentData()
+        build_pfield(label, items[rc[0]].controls[rc[1]].transform(items[rc[0]].conf()))
+    else:
+        draw_data(label)
+
 class CustomLabel(QLabel):
     def __init__(self, parent=None, flags=Qt.WindowFlags()):
         super(CustomLabel, self).__init__(parent, flags)
@@ -197,27 +214,30 @@ if __name__ == '__main__':
     btn_read = QPushButton('Read data')
     btn_read.resize(100, 50)
     btn_read.clicked.connect(lambda: read_and_scale(scale))
+    btn_read.clicked.connect(lambda: pfield_box_update(box_pfield))
     btn_read.show()
 
     btn_draw = QPushButton('Draw data')
     btn_draw.resize(100, 50)
     btn_draw.clicked.connect(lambda: draw_data(label))
+    btn_draw.clicked.connect(lambda: box_pfield.setCurrentIndex(0))
     btn_draw.show()
 
-    btn_build_pfield = QPushButton('Build Pfield')
-    btn_build_pfield.resize(100, 50)
-    btn_build_pfield.clicked.connect(lambda: build_pfield(label, items[1].controls[0].transform(items[1].conf())))
-    btn_build_pfield.show()
+    #combobox
+    box_pfield = QComboBox()
+    box_pfield.resize(100, 50)
+    box_pfield.activated.connect(lambda: pfield_box_changed(box_pfield, label))
+    box_pfield.show()
 
     #layout
     layout_btn = QHBoxLayout()
     layout_btn.addWidget(btn_read)
     layout_btn.addWidget(btn_draw)
-    layout_btn.addWidget(btn_build_pfield)
 
     layout = QVBoxLayout()
     layout.addWidget(label)
     layout.addLayout(layout_btn)
+    layout.addWidget(box_pfield)
 
     widget.setLayout(layout)
 
