@@ -2,6 +2,7 @@ import sys
 import math
 import copy
 import itertools
+import queue
 from obj import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
@@ -83,6 +84,53 @@ def collision_test():
         if Item.collision(items[item_pair[0]], items[item_pair[1]]):
             print('collision: {}, {}'.format(*item_pair))
 
+def build_pfield(label, start):
+    #extend function
+    def extend(x, y):
+        neighbor = [[0, 1], [0, -1], [1, 0], [-1, 0]]
+        for i in neighbor:
+            nx = x+i[0]
+            ny = y+i[1]
+            if label.height() > nx >= 0 and label.width() > ny >= 0 and pfield[nx][ny] is -1:
+                pfield[nx][ny] = pfield[x][y] + 1
+                q.put([nx, ny])
+
+    #draw pfield
+    def draw():
+        image = QImage(label.width(), label.height(), QImage.Format_RGB32)
+        for i in range(label.width()):
+            for j in range(label.height()):
+                image.setPixelColor(i, j, QColor(255.0 * pfield[i][j]/max_potential, 0, 0))
+
+        label.clear()
+        label.setPixmap(QPixmap(image))
+
+    #init pfield
+    pfield = [[-1 for _ in range(label.height())] for _ in range(label.width())]
+
+    #draw obstacle
+    for item in items:
+        if type(item) is Obstacle:
+            item.draw_pfield(pfield)
+
+    #set goal
+    pfield[int(start.x)][int(start.y)] = 0
+
+    max_potential = 1
+    q = queue.Queue()
+    q.put([int(start.x), int(start.y)])
+    while not q.empty():
+        x, y = q.get()
+        extend(x, y)
+        if pfield[x][y] > max_potential:
+            max_potential = pfield[x][y]
+
+    for i in range(label.width()):
+        for j in range(label.height()):
+            if pfield[i][j] < 0:
+                pfield[i][j] = max_potential + 1
+    draw()
+
 class CustomLabel(QLabel):
     def __init__(self, parent=None, flags=Qt.WindowFlags()):
         super(CustomLabel, self).__init__(parent, flags)
@@ -156,10 +204,16 @@ if __name__ == '__main__':
     btn_draw.clicked.connect(lambda: draw_data(label))
     btn_draw.show()
 
+    btn_build_pfield = QPushButton('Build Pfield')
+    btn_build_pfield.resize(100, 50)
+    btn_build_pfield.clicked.connect(lambda: build_pfield(label, items[1].controls[0].transform(items[1].conf())))
+    btn_build_pfield.show()
+
     #layout
     layout_btn = QHBoxLayout()
     layout_btn.addWidget(btn_read)
     layout_btn.addWidget(btn_draw)
+    layout_btn.addWidget(btn_build_pfield)
 
     layout = QVBoxLayout()
     layout.addWidget(label)
