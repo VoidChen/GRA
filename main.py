@@ -131,7 +131,9 @@ def build_pfield(label, start):
     for i in range(label.width()):
         for j in range(label.height()):
             if pfield[i][j] < 0:
-                pfield[i][j] = max_potential + 1
+                pfield[i][j] = max_potential * 1.5
+    max_potential *= 1.5
+
     draw()
     print('Build potential field used time:', time.time()-t)
 
