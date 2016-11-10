@@ -108,8 +108,8 @@ class Polygon:
             else:
                 scan(self.vertices[i], self.vertices[i-1])
 
-        for i in range(x_min, x_max+1):
-            for j in range(math.floor(y_min[i]), math.ceil(y_max[i])+1):
+        for i in range(x_min, min(x_max+1, len(pfield))):
+            for j in range(math.floor(y_min[i]), min(math.ceil(y_max[i])+1, len(pfield[0]))):
                 pfield[i][j] = -2
 
     @staticmethod

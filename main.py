@@ -3,6 +3,7 @@ import math
 import copy
 import itertools
 import queue
+import time
 from obj import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
@@ -86,8 +87,8 @@ def collision_test():
 
 def build_pfield(label, start):
     #extend function
+    neighbor = [[0, 1], [0, -1], [1, 0], [-1, 0]]
     def extend(x, y):
-        neighbor = [[0, 1], [0, -1], [1, 0], [-1, 0]]
         for i in neighbor:
             nx = x+i[0]
             ny = y+i[1]
@@ -100,10 +101,12 @@ def build_pfield(label, start):
         image = QImage(label.width(), label.height(), QImage.Format_RGB32)
         for i in range(label.width()):
             for j in range(label.height()):
-                image.setPixelColor(i, j, QColor(255.0 * pfield[i][j]/max_potential, 0, 0))
+                image.setPixelColor(i, j, QColor(*([255.0 * pfield[i][j]/max_potential]*3)))
 
         label.clear()
         label.setPixmap(QPixmap(image))
+
+    t = time.time()
 
     #init pfield
     pfield = [[-1 for _ in range(label.height())] for _ in range(label.width())]
@@ -130,6 +133,7 @@ def build_pfield(label, start):
             if pfield[i][j] < 0:
                 pfield[i][j] = max_potential + 1
     draw()
+    print('Build potential field used time:', time.time()-t)
 
 def pfield_box_update(box):
     box.clear()
