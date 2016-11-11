@@ -92,7 +92,7 @@ class Polygon:
                     if y < y_min[x] or y_min[x] is -1:
                         y_min[x] = y
             else:
-                x = x_start
+                x = min(x_start, len(pfield)-1)
                 y = max(v1.y, v2.y)
                 if y > y_max[x] or y_max[x] is -1:
                     y_max[x] = y
