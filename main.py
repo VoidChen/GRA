@@ -248,15 +248,14 @@ def find_path(label, n):
         #print('extend', temp)
         extend(*(temp[1]))
 
-    if done:
-        print('Find path!')
-    else:
-        print('Fail...')
-
     print('Find path used time:', time.time() - t)
 
-    path = backtrace(goal)
-    return path
+    if done:
+        print('Find path!')
+        return backtrace(goal)
+    else:
+        print('Fail...')
+        return [init]
 
 def show_path(label, n, total_time = 5):
     path = find_path(label, n)
