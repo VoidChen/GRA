@@ -75,21 +75,24 @@ class Polygon:
         def scan(v1, v2):
             nonlocal x_min, x_max, y_min, y_max
 
-            if math.floor(v1.x) < x_min or x_min is -1:
+            x_start = max(math.ceil(v1.x), 0)
+            x_end = min(math.floor(v2.x), len(pfield)-1)
+
+            if x_start < x_min or x_min is -1:
                 x_min = math.floor(v1.x)
-            if math.ceil(v2.x) > x_max or x_max is -1:
+            if x_end > x_max or x_max is -1:
                 x_max = math.ceil(v2.x)
 
             if v1.x != v2.x:
                 dy = (v2.y - v1.y)/(v2.x - v1.x)
-                for x in range(math.ceil(v1.x), math.floor(v2.x)+1):
+                for x in range(x_start, x_end+1):
                     y = (x-v1.x) * dy + v1.y
                     if y > y_max[x] or y_max[x] is -1:
                         y_max[x] = y
                     if y < y_min[x] or y_min[x] is -1:
                         y_min[x] = y
             else:
-                x = math.floor(v1.x)
+                x = x_start
                 y = max(v1.y, v2.y)
                 if y > y_max[x] or y_max[x] is -1:
                     y_max[x] = y
