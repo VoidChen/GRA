@@ -3,6 +3,7 @@ import math
 import copy
 import itertools
 import queue
+import heapq
 import time
 from obj import *
 from PyQt5.QtGui import *
@@ -85,7 +86,17 @@ def collision_test():
         if Item.collision(items[item_pair[0]], items[item_pair[1]]):
             print('collision: {}, {}'.format(*item_pair))
 
-def build_pfield(label, start):
+def build_pfield(label, start, draw=False):
+    #draw pfield
+    def draw_pfield():
+        image = QImage(label.width(), label.height(), QImage.Format_RGB32)
+        for i in range(label.width()):
+            for j in range(label.height()):
+                image.setPixelColor(i, j, QColor(*([255.0 * pfield[i][j]/max_potential]*3)))
+
+        label.clear()
+        label.setPixmap(QPixmap(image))
+
     #extend function
     neighbor = [[0, 1], [0, -1], [1, 0], [-1, 0]]
     def extend(x, y):
@@ -95,16 +106,6 @@ def build_pfield(label, start):
             if label.height() > nx >= 0 and label.width() > ny >= 0 and pfield[nx][ny] is -1:
                 pfield[nx][ny] = pfield[x][y] + 1
                 q.put([nx, ny])
-
-    #draw pfield
-    def draw():
-        image = QImage(label.width(), label.height(), QImage.Format_RGB32)
-        for i in range(label.width()):
-            for j in range(label.height()):
-                image.setPixelColor(i, j, QColor(*([255.0 * pfield[i][j]/max_potential]*3)))
-
-        label.clear()
-        label.setPixmap(QPixmap(image))
 
     t = time.time()
 
@@ -134,8 +135,12 @@ def build_pfield(label, start):
                 pfield[i][j] = max_potential * 1.5
     max_potential *= 1.5
 
-    draw()
-    print('Build potential field used time:', time.time()-t)
+    print('Build potential field used time:', time.time() - t)
+
+    if draw:
+        draw_pfield()
+
+    return pfield
 
 def pfield_box_update(box):
     box.clear()
@@ -150,9 +155,97 @@ def pfield_box_update(box):
 def pfield_box_changed(box, label):
     if box.currentIndex() is not 0:
         rc = box.currentData()
-        build_pfield(label, items[rc[0]].controls[rc[1]].transform(items[rc[0]].conf()))
+        build_pfield(label, items[rc[0]].controls[rc[1]].transform(items[rc[0]].conf()), True)
     else:
         draw_data(label)
+
+def findpath(label, n):
+    def calc_pvalue(conf):
+        sum = 0
+        for i in range(len(robot.controls)):
+            temp = robot.controls[i].transform(conf)
+            sum += pfields[i][int(temp.x)][int(temp.y)]
+        return sum
+
+    #heap function
+    def push(conf):
+        pvalue = calc_pvalue(conf)
+        heapq.heappush(heap, (pvalue, conf))
+
+    def pop():
+        return heapq.heappop(heap)
+
+    #extend function
+    neighbor = [[0, 0, 1], [0, 0, -1], [0, 1, 0], [0, -1, 0], [1, 0, 0], [-1, 0, 0]]
+    def extend(x, y, z):
+        if visit[x][y][z] is -1:
+            nonlocal done
+            done = True
+
+        else:
+            for i in neighbor:
+                nx, ny, nz = x+i[0], y+i[1], (z+i[2])%360
+                if label.height() > nx >= 0 and label.width() > ny >= 0:
+                    if visit[nx][ny][nz] is not 1:
+                        #check conf validity
+                        robot.init_conf = [nx, ny, nz]
+                        valid = True
+                        for item in items:
+                            if type(item) is Obstacle and Item.collision(robot, item):
+                                valid = False
+                                break
+                        for poly in robot.polygons:
+                            for v in poly.configured(robot.conf()).vertices:
+                                if not (label.height() > v.x >= 0 and label.width() > v.y >= 0):
+                                    valid = False
+                                    break
+                            if not valid:
+                                break
+
+                        if valid:
+                            if visit[nx][ny][nz] is 0:
+                                visit[nx][ny][nz] = 1
+                            push([nx, ny, nz])
+
+    t = time.time()
+
+    #copy robot
+    robot = copy.deepcopy(items[n*2])
+
+    #build pfields
+    pfields = []
+    for x in robot.controls:
+        pfields.append(build_pfield(label, x.transform(items[n*2+1].conf())))
+
+    #init heap and cspace
+    heap = []
+    visit = [[[0 for _ in range(360)] for _ in range(label.height())] for _ in range(label.width())]
+
+    #set init and goal
+    init = [int(items[n].init_conf[x]) for x in range(3)]
+    init[2] %= 360
+    visit[init[0]][init[1]][init[2]] = 1
+    goal = [int(items[n+1].init_conf[x]) for x in range(3)]
+    goal[2] %= 360
+    visit[goal[0]][goal[1]][goal[2]] = -1
+    print('init:', init)
+    print('goal:', goal)
+
+    push(init)
+
+    done = False
+
+    while not done and len(heap) is not 0:
+        temp = pop()
+        print('extend', temp)
+        extend(*(temp[1]))
+
+    if done:
+        print('Find goal!')
+    else:
+        print('Fail...')
+
+    print('Find path used time:', time.time() - t)
 
 class CustomLabel(QLabel):
     def __init__(self, parent=None, flags=Qt.WindowFlags()):
@@ -197,6 +290,7 @@ class CustomLabel(QLabel):
             items[selected].init_conf = items[selected].conf()
             items[selected].temp_conf = [0.0, 0.0, 0.0]
         print('Mouse {} release at ({}, {})'.format(event.button(), event.x(), event.y()))
+        print('item {} new conf {}'.format(selected, items[selected].conf()))
 
 if __name__ == '__main__':
     #init
@@ -229,6 +323,11 @@ if __name__ == '__main__':
     btn_draw.clicked.connect(lambda: box_pfield.setCurrentIndex(0))
     btn_draw.show()
 
+    btn_findpath = QPushButton('Find path')
+    btn_findpath.resize(100, 50)
+    btn_findpath.clicked.connect(lambda: findpath(label, 0))
+    btn_findpath.show()
+
     #combobox
     box_pfield = QComboBox()
     box_pfield.resize(100, 50)
@@ -239,6 +338,7 @@ if __name__ == '__main__':
     layout_btn = QHBoxLayout()
     layout_btn.addWidget(btn_read)
     layout_btn.addWidget(btn_draw)
+    layout_btn.addWidget(btn_findpath)
 
     layout = QVBoxLayout()
     layout.addWidget(label)
