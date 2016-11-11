@@ -159,7 +159,7 @@ def pfield_box_changed(box, label):
     else:
         draw_data(label)
 
-def findpath(label, n):
+def find_path(label, n):
     def calc_pvalue(conf):
         sum = 0
         for i in range(len(robot.controls)):
@@ -205,7 +205,14 @@ def findpath(label, n):
                         if valid:
                             if visit[nx][ny][nz] is 0:
                                 visit[nx][ny][nz] = 1
+                            prev_conf[(nx, ny, nz)] = [x, y, z]
                             push([nx, ny, nz])
+
+    def backtrace(conf):
+        if tuple(conf) in prev_conf:
+            return backtrace(prev_conf[tuple(conf)]) + [conf]
+        else:
+            return [conf]
 
     t = time.time()
 
@@ -220,12 +227,13 @@ def findpath(label, n):
     #init heap and cspace
     heap = []
     visit = [[[0 for _ in range(360)] for _ in range(label.height())] for _ in range(label.width())]
+    prev_conf = {}
 
     #set init and goal
-    init = [int(items[n].init_conf[x]) for x in range(3)]
+    init = [int(items[n*2].init_conf[x]) for x in range(3)]
     init[2] %= 360
     visit[init[0]][init[1]][init[2]] = 1
-    goal = [int(items[n+1].init_conf[x]) for x in range(3)]
+    goal = [int(items[n*2+1].init_conf[x]) for x in range(3)]
     goal[2] %= 360
     visit[goal[0]][goal[1]][goal[2]] = -1
     print('init:', init)
@@ -237,15 +245,28 @@ def findpath(label, n):
 
     while not done and len(heap) is not 0:
         temp = pop()
-        print('extend', temp)
+        #print('extend', temp)
         extend(*(temp[1]))
 
     if done:
-        print('Find goal!')
+        print('Find path!')
     else:
         print('Fail...')
 
     print('Find path used time:', time.time() - t)
+
+    path = backtrace(goal)
+    return path
+
+def show_path(label, n, total_time = 5):
+    path = find_path(label, n)
+    delay = total_time / len(path)
+    label.clear()
+    for conf in path:
+        items[n*2].init_conf = conf
+        draw_data(label)
+        QApplication.processEvents()
+        time.sleep(delay)
 
 class CustomLabel(QLabel):
     def __init__(self, parent=None, flags=Qt.WindowFlags()):
@@ -281,8 +302,6 @@ class CustomLabel(QLabel):
                 items[selected].temp_conf = [0.0, 0.0, math.degrees(angle_new - angle_old)]
 
             draw_data(self)
-
-        print('Mouse at ({}, {})'.format(event.x(), event.y()))
 
     def mouseReleaseEvent(self, event):
         #save temp_conf to init_conf and reset
@@ -323,10 +342,15 @@ if __name__ == '__main__':
     btn_draw.clicked.connect(lambda: box_pfield.setCurrentIndex(0))
     btn_draw.show()
 
-    btn_findpath = QPushButton('Find path')
-    btn_findpath.resize(100, 50)
-    btn_findpath.clicked.connect(lambda: findpath(label, 0))
-    btn_findpath.show()
+    btn_find_path = QPushButton('Find path')
+    btn_find_path.resize(100, 50)
+    btn_find_path.clicked.connect(lambda: find_path(label, 0))
+    btn_find_path.show()
+
+    btn_show_path = QPushButton('Show path')
+    btn_show_path.resize(100, 50)
+    btn_show_path.clicked.connect(lambda: show_path(label, 0))
+    btn_show_path.show()
 
     #combobox
     box_pfield = QComboBox()
@@ -338,7 +362,8 @@ if __name__ == '__main__':
     layout_btn = QHBoxLayout()
     layout_btn.addWidget(btn_read)
     layout_btn.addWidget(btn_draw)
-    layout_btn.addWidget(btn_findpath)
+    layout_btn.addWidget(btn_find_path)
+    layout_btn.addWidget(btn_show_path)
 
     layout = QVBoxLayout()
     layout.addWidget(label)
