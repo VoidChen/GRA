@@ -20,6 +20,9 @@ class Vec2:
         cos = math.cos(math.radians(conf[2]))
         return Point(self.x*cos - self.y*sin + conf[0], self.x*sin + self.y*cos + conf[1])
 
+    def y_convert(self, height):
+        return Point(self.x, height - self.y)
+
     def __add__(self, other):
         return Vec2(self.x + other.x, self.y + other.y)
 
@@ -60,6 +63,12 @@ class Polygon:
         result = copy.deepcopy(self)
         for i in range(len(result.vertices)):
             result.vertices[i] = self.vertices[i].transform(conf)
+        return result
+
+    def y_convert(self, height):
+        result = copy.deepcopy(self)
+        for i in range(len(result.vertices)):
+            result.vertices[i] = self.vertices[i].y_convert(height)
         return result
 
     def draw(self, painter, fill = False):
@@ -169,9 +178,9 @@ class Item:
         #print init conf
         print('Init conf: {}'.format(self.init_conf))
 
-    def draw(self, painter):
+    def draw(self, painter, height):
         for poly in self.polygons:
-            poly.configured(self.conf()).draw(painter)
+            poly.configured(self.conf()).y_convert(height).draw(painter)
 
     def draw_pfield(self, pfield):
         for poly in self.polygons:

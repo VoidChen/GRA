@@ -75,7 +75,7 @@ def draw_data(label):
         else:
             painter.setPen(QPen(QColor(255, 255, 255), 1))
 
-        x.draw(painter)
+        x.draw(painter, label.height())
 
     painter.end()
     label.clear()
@@ -92,7 +92,7 @@ def build_pfield(label, start, draw=False):
         image = QImage(label.width(), label.height(), QImage.Format_RGB32)
         for i in range(label.width()):
             for j in range(label.height()):
-                image.setPixelColor(i, j, QColor(*([255.0 * pfield[i][j]/max_potential]*3)))
+                image.setPixelColor(i, j, QColor(*([255.0 * pfield[i][(j+1) * -1]/max_potential]*3)))
 
         label.clear()
         label.setPixmap(QPixmap(image))
@@ -274,41 +274,41 @@ class CustomLabel(QLabel):
     def mousePressEvent(self, event):
         #save press button&point
         global mouse_press
-        mouse_press = {'button': event.button(), 'x': event.x(), 'y': event.y()}
+        mouse_press = {'button': event.button(), 'x': event.x(), 'y': self.height() - event.y()}
 
         #detect selected item
         global selected
         for i in range(len(items)):
-            if items[i].contains(float(event.x()), float(event.y())):
+            if items[i].contains(float(event.x()), float(self.height() - event.y())):
                 selected = i
                 break
         else:
             selected = -1
 
-        print('Mouse {} press at ({}, {}), item {} selected.'.format(event.button(), event.x(), event.y(), selected))
+        print('Mouse {} press at ({}, {}), item {} selected.'.format(event.button(), event.x(), self.height() - event.y(), selected))
 
     def mouseMoveEvent(self, event):
         #calc temp_conf and update label
         if selected is not -1:
             #translate
             if mouse_press['button'] == Qt.LeftButton:
-                items[selected].temp_conf = [event.x() - mouse_press['x'], event.y() - mouse_press['y'], 0.0]
+                items[selected].temp_conf = [event.x() - mouse_press['x'], (self.height() - event.y()) - mouse_press['y'], 0.0]
 
             #rotate
             elif mouse_press['button'] == Qt.RightButton:
-                angle_new = math.atan2(event.y() - items[selected].init_conf[1], event.x() - items[selected].init_conf[0])
+                angle_new = math.atan2((self.height() - event.y()) - items[selected].init_conf[1], event.x() - items[selected].init_conf[0])
                 angle_old = math.atan2(mouse_press['y'] - items[selected].init_conf[1], mouse_press['x'] - items[selected].init_conf[0])
                 items[selected].temp_conf = [0.0, 0.0, math.degrees(angle_new - angle_old)]
 
             draw_data(self)
 
     def mouseReleaseEvent(self, event):
+        print('Mouse {} release at ({}, {})'.format(event.button(), event.x(), self.height() - event.y()))
         #save temp_conf to init_conf and reset
         if selected is not -1:
             items[selected].init_conf = items[selected].conf()
             items[selected].temp_conf = [0.0, 0.0, 0.0]
-        print('Mouse {} release at ({}, {})'.format(event.button(), event.x(), event.y()))
-        print('item {} new conf {}'.format(selected, items[selected].conf()))
+            print('item {} new conf {}'.format(selected, items[selected].conf()))
 
 if __name__ == '__main__':
     #init
