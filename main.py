@@ -168,18 +168,18 @@ def find_path(label, n):
 
     #extend function
     neighbor = [[0, 0, 1], [0, 0, -1], [0, 1, 0], [0, -1, 0], [1, 0, 0], [-1, 0, 0]]
-    def extend(x, y, z):
-        if visit[x][y][z] is -1:
+    def extend(conf):
+        if conf == goal:
             nonlocal done
             done = True
 
         else:
             for i in neighbor:
-                nx, ny, nz = x+i[0], y+i[1], (z+i[2])%360
-                if label.height() > nx >= 0 and label.width() > ny >= 0:
-                    if visit[nx][ny][nz] is not 1:
+                new_conf = (conf[0]+i[0], conf[1]+i[1], (conf[2]+i[2])%360)
+                if label.height() > new_conf[0] >= 0 and label.width() > new_conf[1] >= 0:
+                    if new_conf not in visit:
                         #check conf validity
-                        robot.init_conf = [nx, ny, nz]
+                        robot.init_conf = new_conf
                         valid = True
                         for item in items:
                             if type(item) is Obstacle and Item.collision(robot, item):
@@ -193,15 +193,14 @@ def find_path(label, n):
                             if not valid:
                                 break
 
+                        visit[new_conf] = True
                         if valid:
-                            if visit[nx][ny][nz] is 0:
-                                visit[nx][ny][nz] = 1
-                            prev_conf[(nx, ny, nz)] = [x, y, z]
-                            heap.put((calc_pvalue([nx, ny, nz]), [nx, ny, nz]))
+                            prev_conf[new_conf] = conf
+                            heap.put((calc_pvalue(new_conf), new_conf))
 
     def backtrace(conf):
-        if tuple(conf) in prev_conf:
-            return backtrace(prev_conf[tuple(conf)]) + [conf]
+        if conf in prev_conf:
+            return backtrace(prev_conf[conf]) + [conf]
         else:
             return [conf]
 
@@ -217,19 +216,16 @@ def find_path(label, n):
 
     #init heap and cspace
     heap = queue.PriorityQueue()
-    visit = [[[0 for _ in range(360)] for _ in range(label.height())] for _ in range(label.width())]
+    visit = {}
     prev_conf = {}
 
     #set init and goal
-    init = [int(items[n*2].init_conf[x]) for x in range(3)]
-    init[2] %= 360
-    visit[init[0]][init[1]][init[2]] = 1
-    goal = [int(items[n*2+1].init_conf[x]) for x in range(3)]
-    goal[2] %= 360
-    visit[goal[0]][goal[1]][goal[2]] = -1
+    init = (int(items[n*2].init_conf[0]), int(items[n*2].init_conf[1]), int(items[n*2].init_conf[2])%360)
+    goal = (int(items[n*2+1].init_conf[0]), int(items[n*2+1].init_conf[1]), int(items[n*2+1].init_conf[2])%360)
     print('init:', init)
     print('goal:', goal)
 
+    visit[init] = True
     heap.put((calc_pvalue(init), init))
 
     done = False
@@ -237,7 +233,7 @@ def find_path(label, n):
     while not done and not heap.empty():
         temp = heap.get()
         #print('extend', temp)
-        extend(*(temp[1]))
+        extend(temp[1])
 
     print('Find path used time:', time.time() - t)
 
