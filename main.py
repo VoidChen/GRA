@@ -5,6 +5,7 @@ import itertools
 import queue
 import time
 from obj import *
+from pfield import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
@@ -85,70 +86,6 @@ def collision_test():
         if Item.collision(items[item_pair[0]], items[item_pair[1]]):
             print('collision: {}, {}'.format(*item_pair))
 
-def build_pfield(label, start):
-    height = label.height()
-    width = label.width()
-
-    #extend function
-    neighbor = [[0, 1], [0, -1], [1, 0], [-1, 0]]
-    def extend(x, y):
-        for i in neighbor:
-            nx = x+i[0]
-            ny = y+i[1]
-            if height > nx >= 0 and width > ny >= 0 and pfield[nx][ny] is -1:
-                pfield[nx][ny] = pfield[x][y] + 1
-                q.put([nx, ny])
-                nonlocal max_potential
-                if pfield[nx][ny] > max_potential:
-                    max_potential = pfield[nx][ny]
-
-    t = time.time()
-
-    #init pfield
-    pfield = [[-1 for _ in range(height)] for _ in range(width)]
-
-    #draw obstacle
-    for item in items:
-        if type(item) is Obstacle:
-            item.draw_pfield(pfield)
-
-    #set goal
-    max_potential = 1
-    pfield[int(start.x)][int(start.y)] = 0
-
-    q = queue.Queue()
-    q.put([int(start.x), int(start.y)])
-    while not q.empty():
-        extend(*(q.get()))
-
-    for i in range(width):
-        for j in range(height):
-            if pfield[i][j] < 0:
-                pfield[i][j] = max_potential * 1.5
-    max_potential *= 1.5
-
-    print('Build potential field used time:', time.time() - t)
-
-    return pfield
-
-def draw_pfield(label, pfield):
-    height = label.height()
-    width = label.width()
-
-    max_potential = 1
-    for i in range(width):
-        for j in range(height):
-            if pfield[i][j] > max_potential:
-                max_potential = pfield[i][j]
-
-    image = QImage(width, height, QImage.Format_RGB32)
-    for i in range(width):
-        for j in range(height):
-            image.setPixelColor(i, j, QColor(*([255.0 * pfield[i][(j+1) * -1]/max_potential]*3)))
-
-    label.clear()
-    label.setPixmap(QPixmap(image))
-
 def pfield_box_update(box):
     box.clear()
     box.addItem('No potential field')
@@ -162,7 +99,7 @@ def pfield_box_update(box):
 def pfield_box_changed(box, label):
     if box.currentIndex() is not 0:
         rc = box.currentData()
-        pfield = build_pfield(label, items[rc[0]].controls[rc[1]].transform(items[rc[0]].conf()))
+        pfield = build_pfield(items, items[rc[0]].controls[rc[1]].transform(items[rc[0]].conf()), label.height(), label.width())
         draw_pfield(label, pfield)
     else:
         draw_data(label)
@@ -224,7 +161,7 @@ def find_path(label, n):
     #build pfields
     pfields = []
     for x in robot.controls:
-        pfields.append(build_pfield(label, x.transform(items[n*2+1].conf())))
+        pfields.append(build_pfield(items, x.transform(items[n*2+1].conf()), height, width))
 
     #init heap and cspace
     heap = queue.PriorityQueue()
