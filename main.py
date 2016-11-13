@@ -162,6 +162,9 @@ def pfield_box_changed(box, label):
         draw_data(label)
 
 def find_path(label, n):
+    height = label.height()
+    width = label.width()
+
     def calc_pvalue(conf):
         sum = 0
         for i in range(len(robot.controls)):
@@ -179,7 +182,7 @@ def find_path(label, n):
         else:
             for i in neighbor:
                 new_conf = (conf[0]+i[0], conf[1]+i[1], (conf[2]+i[2])%360)
-                if label.height() > new_conf[0] >= 0 and label.width() > new_conf[1] >= 0:
+                if height > new_conf[0] >= 0 and width > new_conf[1] >= 0:
                     if new_conf not in visit:
                         #check conf validity
                         robot.init_conf = new_conf
@@ -190,7 +193,7 @@ def find_path(label, n):
                                 break
                         for poly in robot.polygons:
                             for v in poly.configured(robot.conf()).vertices:
-                                if not (label.height() > v.x >= 0 and label.width() > v.y >= 0):
+                                if not (height > v.x >= 0 and width > v.y >= 0):
                                     valid = False
                                     break
                             if not valid:
