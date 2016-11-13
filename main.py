@@ -85,19 +85,9 @@ def collision_test():
         if Item.collision(items[item_pair[0]], items[item_pair[1]]):
             print('collision: {}, {}'.format(*item_pair))
 
-def build_pfield(label, start, draw=False):
+def build_pfield(label, start):
     height = label.height()
     width = label.width()
-
-    #draw pfield
-    def draw_pfield():
-        image = QImage(width, height, QImage.Format_RGB32)
-        for i in range(width):
-            for j in range(height):
-                image.setPixelColor(i, j, QColor(*([255.0 * pfield[i][(j+1) * -1]/max_potential]*3)))
-
-        label.clear()
-        label.setPixmap(QPixmap(image))
 
     #extend function
     neighbor = [[0, 1], [0, -1], [1, 0], [-1, 0]]
@@ -139,10 +129,25 @@ def build_pfield(label, start, draw=False):
 
     print('Build potential field used time:', time.time() - t)
 
-    if draw:
-        draw_pfield()
-
     return pfield
+
+def draw_pfield(label, pfield):
+    height = label.height()
+    width = label.width()
+
+    max_potential = 1
+    for i in range(width):
+        for j in range(height):
+            if pfield[i][j] > max_potential:
+                max_potential = pfield[i][j]
+
+    image = QImage(width, height, QImage.Format_RGB32)
+    for i in range(width):
+        for j in range(height):
+            image.setPixelColor(i, j, QColor(*([255.0 * pfield[i][(j+1) * -1]/max_potential]*3)))
+
+    label.clear()
+    label.setPixmap(QPixmap(image))
 
 def pfield_box_update(box):
     box.clear()
@@ -157,7 +162,8 @@ def pfield_box_update(box):
 def pfield_box_changed(box, label):
     if box.currentIndex() is not 0:
         rc = box.currentData()
-        build_pfield(label, items[rc[0]].controls[rc[1]].transform(items[rc[0]].conf()), True)
+        pfield = build_pfield(label, items[rc[0]].controls[rc[1]].transform(items[rc[0]].conf()))
+        draw_pfield(label, pfield)
     else:
         draw_data(label)
 
