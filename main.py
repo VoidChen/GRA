@@ -3,7 +3,6 @@ import math
 import copy
 import itertools
 import queue
-import heapq
 import time
 from obj import *
 from PyQt5.QtGui import *
@@ -167,14 +166,6 @@ def find_path(label, n):
             sum += pfields[i][int(temp.x)][int(temp.y)]
         return sum
 
-    #heap function
-    def push(conf):
-        pvalue = calc_pvalue(conf)
-        heapq.heappush(heap, (pvalue, conf))
-
-    def pop():
-        return heapq.heappop(heap)
-
     #extend function
     neighbor = [[0, 0, 1], [0, 0, -1], [0, 1, 0], [0, -1, 0], [1, 0, 0], [-1, 0, 0]]
     def extend(x, y, z):
@@ -206,7 +197,7 @@ def find_path(label, n):
                             if visit[nx][ny][nz] is 0:
                                 visit[nx][ny][nz] = 1
                             prev_conf[(nx, ny, nz)] = [x, y, z]
-                            push([nx, ny, nz])
+                            heap.put((calc_pvalue([nx, ny, nz]), [nx, ny, nz]))
 
     def backtrace(conf):
         if tuple(conf) in prev_conf:
@@ -225,7 +216,7 @@ def find_path(label, n):
         pfields.append(build_pfield(label, x.transform(items[n*2+1].conf())))
 
     #init heap and cspace
-    heap = []
+    heap = queue.PriorityQueue()
     visit = [[[0 for _ in range(360)] for _ in range(label.height())] for _ in range(label.width())]
     prev_conf = {}
 
@@ -239,12 +230,12 @@ def find_path(label, n):
     print('init:', init)
     print('goal:', goal)
 
-    push(init)
+    heap.put((calc_pvalue(init), init))
 
     done = False
 
-    while not done and len(heap) is not 0:
-        temp = pop()
+    while not done and not heap.empty():
+        temp = heap.get()
         #print('extend', temp)
         extend(*(temp[1]))
 
