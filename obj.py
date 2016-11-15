@@ -15,10 +15,10 @@ class Vec2:
     def toQPointF(self):
         return QPointF(self.x, self.y)
 
-    def transform(self, conf):
+    def transform(self, conf, scale = 1):
         sin = math.sin(math.radians(conf[2]))
         cos = math.cos(math.radians(conf[2]))
-        return Point(self.x*cos - self.y*sin + conf[0], self.x*sin + self.y*cos + conf[1])
+        return Point((self.x*cos - self.y*sin + conf[0]) * scale, (self.x*sin + self.y*cos + conf[1]) * scale)
 
     def y_convert(self, height):
         return Point(self.x, height - self.y)
@@ -54,15 +54,10 @@ class Polygon:
     def toQPolygonF(self):
         return QPolygonF([v.toQPointF() for v in self.vertices])
 
-    def configured(self, conf):
-        def transform(p, conf):
-            sin = math.sin(math.radians(conf[2]))
-            cos = math.cos(math.radians(conf[2]))
-            return Point(p.x*cos - p.y*sin + conf[0], p.x*sin + p.y*cos + conf[1])
-
+    def configured(self, conf, scale = 1):
         result = copy.deepcopy(self)
         for i in range(len(result.vertices)):
-            result.vertices[i] = self.vertices[i].transform(conf)
+            result.vertices[i] = self.vertices[i].transform(conf, scale)
         return result
 
     def y_convert(self, height):
@@ -178,9 +173,9 @@ class Item:
         #print init conf
         print('Init conf: {}'.format(self.init_conf))
 
-    def draw(self, painter, height):
+    def draw(self, painter, height_c, scale):
         for poly in self.polygons:
-            poly.configured(self.conf()).y_convert(height).draw(painter)
+            poly.configured(self.conf(), scale).y_convert(height_c).draw(painter)
 
     def draw_pfield(self, pfield):
         for poly in self.polygons:

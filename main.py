@@ -60,8 +60,8 @@ def read_and_scale(scale):
     read_data()
     scale_data(scale)
 
-def draw_data(label):
-    pixmap = QPixmap(label.width(), label.height())
+def draw_data(label, width_c, height_c, scale):
+    pixmap = QPixmap(width_c, height_c)
     pixmap.fill(Qt.black)
     painter = QPainter(pixmap)
 
@@ -76,7 +76,7 @@ def draw_data(label):
         else:
             painter.setPen(QPen(QColor(255, 255, 255), 1))
 
-        x.draw(painter, label.height())
+        x.draw(painter, height_c, scale)
 
     painter.end()
     label.clear()
@@ -100,10 +100,10 @@ def pfield_box_update(box):
 def pfield_box_changed(box, label):
     if box.currentIndex() is not 0:
         rc = box.currentData()
-        pfield = build_pfield(items, items[rc[0]].controls[rc[1]].transform(items[rc[0]].conf()), label.height(), label.width())
-        draw_pfield(label, pfield)
+        pfield = build_pfield(items, items[rc[0]].controls[rc[1]].transform(items[rc[0]].conf()), width, height)
+        draw_pfield(label, pfield, width, height)
     else:
-        draw_data(label)
+        draw_data(label, width_c, height_c, scale)
 
 def show_path(n, label, total_time = 5):
     path = find_path(items, n, label.height(), label.width())
@@ -111,7 +111,7 @@ def show_path(n, label, total_time = 5):
     label.clear()
     for conf in path:
         items[n*2].init_conf = conf
-        draw_data(label)
+        draw_data(label, width_c, height_c, scale)
         QApplication.processEvents()
         time.sleep(delay)
 
@@ -127,7 +127,7 @@ class CustomLabel(QLabel):
         #detect selected item
         global selected
         for i in range(len(items)):
-            if items[i].contains(float(event.x()), float(self.height() - event.y())):
+            if items[i].contains(float(event.x()/scale), float((self.height() - event.y())/scale)):
                 selected = i
                 break
         else:
@@ -140,15 +140,16 @@ class CustomLabel(QLabel):
         if selected is not -1:
             #translate
             if mouse_press['button'] == Qt.LeftButton:
-                items[selected].temp_conf = [event.x() - mouse_press['x'], (self.height() - event.y()) - mouse_press['y'], 0.0]
+                items[selected].temp_conf = [(event.x() - mouse_press['x'])/scale, ((self.height() - event.y()) - mouse_press['y'])/scale, 0.0]
 
             #rotate
             elif mouse_press['button'] == Qt.RightButton:
-                angle_new = math.atan2((self.height() - event.y()) - items[selected].init_conf[1], event.x() - items[selected].init_conf[0])
-                angle_old = math.atan2(mouse_press['y'] - items[selected].init_conf[1], mouse_press['x'] - items[selected].init_conf[0])
+                angle_new = math.atan2((self.height() - event.y())/scale - items[selected].init_conf[1], event.x()/scale - items[selected].init_conf[0])
+                angle_old = math.atan2(mouse_press['y']/scale - items[selected].init_conf[1], mouse_press['x']/scale - items[selected].init_conf[0])
                 items[selected].temp_conf = [0.0, 0.0, math.degrees(angle_new - angle_old)]
 
-            draw_data(self)
+            #update canvas
+            draw_data(label, width_c, height_c, scale)
 
     def mouseReleaseEvent(self, event):
         print('Mouse {} release at ({}, {})'.format(event.button(), event.x(), self.height() - event.y()))
@@ -160,9 +161,11 @@ class CustomLabel(QLabel):
 
 if __name__ == '__main__':
     #init
-    width = 400
-    height = 400
-    scale = 400/128
+    width = 128
+    height = 128
+    width_c = 400
+    height_c = 400
+    scale = width_c/width
     app = QApplication(sys.argv)
 
     #main widget
@@ -173,25 +176,25 @@ if __name__ == '__main__':
 
     #label
     label = CustomLabel()
-    label.resize(width, height)
-    draw_data(label)
+    label.resize(width_c, height_c)
+    draw_data(label, width_c, height_c, scale)
 
     #button
     btn_read = QPushButton('Read data')
     btn_read.resize(100, 50)
-    btn_read.clicked.connect(lambda: read_and_scale(scale))
+    btn_read.clicked.connect(lambda: read_and_scale(1))
     btn_read.clicked.connect(lambda: pfield_box_update(box_pfield))
     btn_read.show()
 
     btn_draw = QPushButton('Draw data')
     btn_draw.resize(100, 50)
-    btn_draw.clicked.connect(lambda: draw_data(label))
+    btn_draw.clicked.connect(lambda: draw_data(label, width_c, height_c, scale))
     btn_draw.clicked.connect(lambda: box_pfield.setCurrentIndex(0))
     btn_draw.show()
 
     btn_find_path = QPushButton('Find path')
     btn_find_path.resize(100, 50)
-    btn_find_path.clicked.connect(lambda: find_path(items, 0, label.height(), label.width()))
+    btn_find_path.clicked.connect(lambda: find_path(items, 0, height, width))
     btn_find_path.show()
 
     btn_show_path = QPushButton('Show path')
