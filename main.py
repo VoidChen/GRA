@@ -107,13 +107,14 @@ def pfield_box_changed(box, label, items, width_c, height_c):
 
 def show_path(n, label, total_time = 5):
     path = find_path(items, n, width, height)
-    delay = total_time / len(path)
-    label.clear()
-    for conf in path:
-        items[n*2].init_conf = conf
-        draw_data(label, width_c, height_c, scale)
-        QApplication.processEvents()
-        time.sleep(delay)
+    if len(path) is not 1:
+        path.append(tuple(items[n*2].init_conf))
+        delay = total_time / len(path)
+        for conf in path:
+            items[n*2].init_conf = conf
+            draw_data(label, width_c, height_c, scale)
+            QApplication.processEvents()
+            time.sleep(delay)
 
 class CustomLabel(QLabel):
     def __init__(self, parent=None, flags=Qt.WindowFlags()):
