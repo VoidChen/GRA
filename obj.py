@@ -66,7 +66,7 @@ class Polygon:
             result.vertices[i] = self.vertices[i].y_convert(height)
         return result
 
-    def draw(self, painter, fill = False):
+    def draw(self, painter, fill = True):
         poly = self.toQPolygonF()
         painter.drawPolygon(poly)
         if fill:

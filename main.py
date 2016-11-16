@@ -65,12 +65,12 @@ def draw_data(label, width_c, height_c, scale):
     pixmap.fill(Qt.black)
     painter = QPainter(pixmap)
 
-    for x in items:
+    for x in reversed(items):
         if type(x) is Robot:
             if x.type is 'init':
                 painter.setPen(QPen(QColor(0, 255, 0), 1))
             elif x.type is 'goal':
-                painter.setPen(QPen(QColor(0, 255, 255), 1))
+                painter.setPen(QPen(QColor(0, 128, 255), 1))
         elif type(x) is Obstacle:
             painter.setPen(QPen(QColor(255, 0, 0), 1))
         else:
