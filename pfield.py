@@ -3,7 +3,7 @@ import time
 from obj import *
 from PyQt5.QtGui import *
 
-def build_pfield(items, start, width, height):
+def build_pfield(items, rc, width, height, scale = 1):
     #extend function
     neighbor = [[0, 1], [0, -1], [1, 0], [-1, 0]]
     def extend(x, y):
@@ -25,9 +25,10 @@ def build_pfield(items, start, width, height):
     #draw obstacle
     for item in items:
         if type(item) is Obstacle:
-            item.draw_pfield(pfield)
+            item.draw_pfield(pfield, scale)
 
-    #set goal
+    #set start
+    start = items[rc[0]].controls[rc[1]].transform(items[rc[0]].conf(), scale)
     max_potential = 1
     pfield[int(start.x)][int(start.y)] = 0
 
@@ -62,4 +63,4 @@ def draw_pfield(label, pfield, width, height):
             image.setPixelColor(i, j, QColor(*([255.0 * pfield[i][(j+1) * -1]/max_potential]*3)))
 
     label.clear()
-    label.setPixmap(QPixmap(image.scaled(width_c, height_c, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)))
+    label.setPixmap(QPixmap(image))

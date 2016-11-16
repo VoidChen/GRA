@@ -5,7 +5,7 @@ from obj import *
 from pfield import *
 from PyQt5.QtWidgets import *
 
-def find_path(items, n, height, width):
+def find_path(items, n, width, height):
     def calc_pvalue(conf):
         sum = 0
         for i in range(len(robot.controls)):
@@ -58,8 +58,8 @@ def find_path(items, n, height, width):
 
     #build pfields
     pfields = []
-    for x in robot.controls:
-        pfields.append(build_pfield(items, x.transform(items[n*2+1].conf()), height, width))
+    for i in range(len(robot.controls)):
+        pfields.append(build_pfield(items, [n*2+1, i], width, height))
 
     #init heap and cspace
     heap = queue.PriorityQueue()
@@ -79,14 +79,13 @@ def find_path(items, n, height, width):
 
     while not done and not heap.empty():
         temp = heap.get()
-        #print('extend', temp)
         extend(temp[1])
 
     print('Find path used time:', time.time() - t)
 
     if done:
         print('Find path!')
-        return backtrace(goal)
+        return backtrace(goal) + [tuple(items[n*2+1].init_conf)]
     else:
         print('Fail...')
         return [init]

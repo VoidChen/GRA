@@ -87,7 +87,7 @@ def collision_test():
         if Item.collision(items[item_pair[0]], items[item_pair[1]]):
             print('collision: {}, {}'.format(*item_pair))
 
-def pfield_box_update(box):
+def pfield_box_update(box, items):
     box.clear()
     box.addItem('No potential field')
     for i in range(1, len(items), 2):
@@ -97,16 +97,16 @@ def pfield_box_update(box):
         else:
             break
 
-def pfield_box_changed(box, label):
+def pfield_box_changed(box, label, items, width_c, height_c):
     if box.currentIndex() is not 0:
         rc = box.currentData()
-        pfield = build_pfield(items, items[rc[0]].controls[rc[1]].transform(items[rc[0]].conf()), width, height)
-        draw_pfield(label, pfield, width, height)
+        pfield = build_pfield(items, rc, width_c, height_c, scale)
+        draw_pfield(label, pfield, width_c, height_c)
     else:
         draw_data(label, width_c, height_c, scale)
 
 def show_path(n, label, total_time = 5):
-    path = find_path(items, n, label.height(), label.width())
+    path = find_path(items, n, width, height)
     delay = total_time / len(path)
     label.clear()
     for conf in path:
@@ -183,7 +183,7 @@ if __name__ == '__main__':
     btn_read = QPushButton('Read data')
     btn_read.resize(100, 50)
     btn_read.clicked.connect(lambda: read_and_scale(1))
-    btn_read.clicked.connect(lambda: pfield_box_update(box_pfield))
+    btn_read.clicked.connect(lambda: pfield_box_update(box_pfield, items))
     btn_read.show()
 
     btn_draw = QPushButton('Draw data')
@@ -194,7 +194,7 @@ if __name__ == '__main__':
 
     btn_find_path = QPushButton('Find path')
     btn_find_path.resize(100, 50)
-    btn_find_path.clicked.connect(lambda: find_path(items, 0, height, width))
+    btn_find_path.clicked.connect(lambda: find_path(items, 0, width, height))
     btn_find_path.show()
 
     btn_show_path = QPushButton('Show path')
@@ -205,7 +205,7 @@ if __name__ == '__main__':
     #combobox
     box_pfield = QComboBox()
     box_pfield.resize(100, 50)
-    box_pfield.activated.connect(lambda: pfield_box_changed(box_pfield, label))
+    box_pfield.activated.connect(lambda: pfield_box_changed(box_pfield, label, items, width_c, height_c))
     box_pfield.show()
 
     #layout

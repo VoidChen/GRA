@@ -177,9 +177,9 @@ class Item:
         for poly in self.polygons:
             poly.configured(self.conf(), scale).y_convert(height_c).draw(painter)
 
-    def draw_pfield(self, pfield):
+    def draw_pfield(self, pfield, scale = 1):
         for poly in self.polygons:
-            poly.configured(self.conf()).draw_pfield(pfield)
+            poly.configured(self.conf(), scale).draw_pfield(pfield)
 
     @staticmethod
     def collision(a, b):
