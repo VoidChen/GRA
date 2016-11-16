@@ -119,6 +119,16 @@ class Polygon:
             for j in range(math.floor(y_min[i]), min(math.ceil(y_max[i])+1, len(pfield[0]))):
                 pfield[i][j] = -2
 
+    def contains(self, p):
+        def side(origin, a, b):
+            return math.copysign(1.0, Vec2.dot(a - origin, b - origin))
+
+        sign = side(self.vertices[-1], self.vertices[0], p)
+        for i in range(1, len(self.vertices)):
+            if side(self.vertices[i-1], self.vertices[i], p) != sign:
+                return False
+        return True
+
     @staticmethod
     def collision(a, b):
         def side(origin, a, b):
@@ -159,7 +169,7 @@ class Item:
 
     def contains(self, x, y):
         for poly in self.polygons:
-            if poly.configured(self.conf()).toQPolygonF().containsPoint(QPointF(x, y), Qt.WindingFill):
+            if poly.configured(self.conf()).contains(Point(x, y)):
                 return True
         else:
             return False
