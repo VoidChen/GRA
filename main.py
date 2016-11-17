@@ -52,13 +52,9 @@ def read_data():
     for x in obstacles:
         items.append(x)
 
-def scale_data(scale):
-    for x in items:
-        x.scale(scale)
-
-def read_and_scale(scale):
+def read_and_draw(label, width_c, height_c, scale):
     read_data()
-    scale_data(scale)
+    draw_data(label, width_c, height_c, scale)
 
 def draw_data(label, width_c, height_c, scale):
     pixmap = QPixmap(width_c, height_c)
@@ -183,20 +179,9 @@ if __name__ == '__main__':
     #button
     btn_read = QPushButton('Read data')
     btn_read.resize(100, 50)
-    btn_read.clicked.connect(lambda: read_and_scale(1))
+    btn_read.clicked.connect(lambda: read_and_draw(label, width_c, height_c, scale))
     btn_read.clicked.connect(lambda: pfield_box_update(box_pfield, items))
     btn_read.show()
-
-    btn_draw = QPushButton('Draw data')
-    btn_draw.resize(100, 50)
-    btn_draw.clicked.connect(lambda: draw_data(label, width_c, height_c, scale))
-    btn_draw.clicked.connect(lambda: box_pfield.setCurrentIndex(0))
-    btn_draw.show()
-
-    btn_find_path = QPushButton('Find path')
-    btn_find_path.resize(100, 50)
-    btn_find_path.clicked.connect(lambda: find_path(items, 0, width, height))
-    btn_find_path.show()
 
     btn_show_path = QPushButton('Show path')
     btn_show_path.resize(100, 50)
@@ -212,8 +197,6 @@ if __name__ == '__main__':
     #layout
     layout_btn = QHBoxLayout()
     layout_btn.addWidget(btn_read)
-    layout_btn.addWidget(btn_draw)
-    layout_btn.addWidget(btn_find_path)
     layout_btn.addWidget(btn_show_path)
 
     layout = QVBoxLayout()
