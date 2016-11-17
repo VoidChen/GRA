@@ -116,7 +116,7 @@ class Polygon:
                 scan(self.vertices[i], self.vertices[i-1])
 
         for i in range(x_min, min(x_max+1, len(pfield))):
-            for j in range(math.floor(y_min[i]), min(math.ceil(y_max[i])+1, len(pfield[0]))):
+            for j in range(max(math.floor(y_min[i]), 0), min(math.ceil(y_max[i])+1, len(pfield[0]))):
                 pfield[i][j] = -2
 
     def contains(self, p):
