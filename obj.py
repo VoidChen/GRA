@@ -154,8 +154,9 @@ class Item:
         #read init conf
         self.init_conf = [float(data.pop(0)), float(data.pop(0)), float(data.pop(0))]
 
-        #set temp conf
+        #set other attr
         self.temp_conf = [0.0, 0.0, 0.0]
+        self.index = 0
 
     def scale(self, scale):
         self.init_conf = [self.init_conf[0]*scale, self.init_conf[1]*scale, self.init_conf[2]]

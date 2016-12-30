@@ -32,6 +32,9 @@ def find_path(items, robot_index, width, height):
                             if type(item) is Obstacle and Item.collision(robot, item):
                                 valid = False
                                 break
+                            if type(item) is Robot and item.type is 'init' and item.index != robot.index and Item.collision(robot, item):
+                                valid = False
+                                break
                         for poly in robot.polygons:
                             for v in poly.configured(robot.conf()).vertices:
                                 if not (height > v.x >= 0 and width > v.y >= 0):

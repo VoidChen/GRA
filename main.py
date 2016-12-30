@@ -52,6 +52,9 @@ def read_data():
     for x in obstacles:
         items.append(x)
 
+    for i in range(len(items)):
+        items[i].index = i
+
 def draw_data(label, width_c, height_c, scale):
     pixmap = QPixmap(width_c, height_c)
     pixmap.fill(Qt.black)
