@@ -52,10 +52,6 @@ def read_data():
     for x in obstacles:
         items.append(x)
 
-def read_and_draw(label, width_c, height_c, scale):
-    read_data()
-    draw_data(label, width_c, height_c, scale)
-
 def draw_data(label, width_c, height_c, scale):
     pixmap = QPixmap(width_c, height_c)
     pixmap.fill(Qt.black)
@@ -78,10 +74,9 @@ def draw_data(label, width_c, height_c, scale):
     label.clear()
     label.setPixmap(pixmap)
 
-def collision_test():
-    for item_pair in itertools.combinations(range(len(items)), 2):
-        if Item.collision(items[item_pair[0]], items[item_pair[1]]):
-            print('collision: {}, {}'.format(*item_pair))
+def read_and_draw(label, width_c, height_c, scale):
+    read_data()
+    draw_data(label, width_c, height_c, scale)
 
 def pfield_box_update(box, items):
     box.clear()
