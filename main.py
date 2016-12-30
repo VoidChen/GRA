@@ -101,13 +101,13 @@ def pfield_box_changed(box, label, items, width_c, height_c):
     else:
         draw_data(label, width_c, height_c, scale)
 
-def show_path(n, label, total_time = 5):
-    path = find_path(items, n, width, height)
+def show_path(robot_index, label, total_time = 5):
+    path = find_path(items, robot_index, width, height)
     if len(path) is not 1:
-        path.append(tuple(items[n*2].init_conf))
+        path.append(tuple(items[robot_index*2].init_conf))
         delay = total_time / len(path)
         for conf in path:
-            items[n*2].init_conf = conf
+            items[robot_index*2].init_conf = conf
             draw_data(label, width_c, height_c, scale)
             QApplication.processEvents()
             time.sleep(delay)

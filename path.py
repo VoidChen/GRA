@@ -5,7 +5,7 @@ from obj import *
 from pfield import *
 from PyQt5.QtWidgets import *
 
-def find_path(items, n, width, height):
+def find_path(items, robot_index, width, height):
     def calc_pvalue(conf):
         sum = 0
         for i in range(len(robot.controls)):
@@ -51,15 +51,14 @@ def find_path(items, n, width, height):
         else:
             return [conf]
 
+    #init
     t = time.time()
-
-    #copy robot
-    robot = copy.deepcopy(items[n*2])
+    robot = copy.deepcopy(items[robot_index*2])
 
     #build pfields
     pfields = []
     for i in range(len(robot.controls)):
-        pfields.append(build_pfield(items, [n*2+1, i], width, height))
+        pfields.append(build_pfield(items, [robot_index*2+1, i], width, height))
 
     #init heap and cspace
     heap = queue.PriorityQueue()
@@ -67,8 +66,8 @@ def find_path(items, n, width, height):
     prev_conf = {}
 
     #set init and goal
-    init = (int(items[n*2].init_conf[0]), int(items[n*2].init_conf[1]), int(items[n*2].init_conf[2])%360)
-    goal = (int(items[n*2+1].init_conf[0]), int(items[n*2+1].init_conf[1]), int(items[n*2+1].init_conf[2])%360)
+    init = (int(items[robot_index*2].init_conf[0]), int(items[robot_index*2].init_conf[1]), int(items[robot_index*2].init_conf[2])%360)
+    goal = (int(items[robot_index*2+1].init_conf[0]), int(items[robot_index*2+1].init_conf[1]), int(items[robot_index*2+1].init_conf[2])%360)
     print('init:', init)
     print('goal:', goal)
 
@@ -85,7 +84,7 @@ def find_path(items, n, width, height):
 
     if done:
         print('Find path!')
-        return backtrace(goal) + [tuple(items[n*2+1].init_conf)]
+        return backtrace(goal) + [tuple(items[robot_index*2+1].init_conf)]
     else:
         print('Fail...')
         return [init]
