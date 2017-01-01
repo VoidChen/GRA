@@ -1,4 +1,3 @@
-import queue
 import time
 from obj import *
 from PyQt5.QtGui import *
@@ -12,7 +11,7 @@ def build_pfield(scene, rc, width, height, scale = 1):
             ny = y+i[1]
             if height > nx >= 0 and width > ny >= 0 and pfield[nx][ny] is -1:
                 pfield[nx][ny] = pfield[x][y] + 1
-                q.put([nx, ny])
+                queue.append([nx, ny])
                 nonlocal max_potential
                 if pfield[nx][ny] > max_potential:
                     max_potential = pfield[nx][ny]
@@ -31,10 +30,12 @@ def build_pfield(scene, rc, width, height, scale = 1):
     max_potential = 1
     pfield[int(start.x)][int(start.y)] = 0
 
-    q = queue.Queue()
-    q.put([int(start.x), int(start.y)])
-    while not q.empty():
-        extend(*(q.get()))
+    queue = []
+    counter = 0
+    queue.append([int(start.x), int(start.y)])
+    while counter < len(queue):
+        extend(*queue[counter])
+        counter += 1
 
     for i in range(width):
         for j in range(height):
