@@ -60,7 +60,7 @@ def find_path(scene, robot_index, width, height):
     #init
     t = time.time()
     robot = copy.deepcopy(scene.robot_init[robot_index])
-    neighbor = [[0, 0, 1], [0, 0, -1], [0, 1, 0], [0, -1, 0], [1, 0, 0], [-1, 0, 0]]
+    neighbor = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]]
 
     #build pfields
     pfields = []
