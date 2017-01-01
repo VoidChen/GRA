@@ -3,7 +3,7 @@ import time
 from obj import *
 from PyQt5.QtGui import *
 
-def build_pfield(items, rc, width, height, scale = 1):
+def build_pfield(scene, rc, width, height, scale = 1):
     #extend function
     neighbor = [[0, 1], [0, -1], [1, 0], [-1, 0]]
     def extend(x, y):
@@ -23,12 +23,11 @@ def build_pfield(items, rc, width, height, scale = 1):
     pfield = [[-1 for _ in range(height)] for _ in range(width)]
 
     #draw obstacle
-    for item in items:
-        if type(item) is Obstacle:
-            item.draw_pfield(pfield, scale)
+    for obstacle in scene.obstacle:
+        obstacle.draw_pfield(pfield, scale)
 
     #set start
-    start = items[rc[0]].controls[rc[1]].transform(items[rc[0]].conf(), scale)
+    start = scene.robot_goal[rc[0]].controls[rc[1]].transform(scene.robot_goal[rc[0]].conf(), scale)
     max_potential = 1
     pfield[int(start.x)][int(start.y)] = 0
 

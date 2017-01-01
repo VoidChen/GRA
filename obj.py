@@ -203,7 +203,6 @@ class Item:
 class Robot(Item):
     def __init__(self, data):
         super(Robot, self).__init__(data)
-        self.type = ''
 
         #read goal conf
         self.goal_conf = [float(data.pop(0)), float(data.pop(0)), float(data.pop(0))]
@@ -232,3 +231,12 @@ class Robot(Item):
 class Obstacle(Item):
     def __init__(self, data):
         super(Obstacle, self).__init__(data)
+
+class Scene:
+    def __init__(self):
+        self.robot_init = []
+        self.robot_goal = []
+        self.obstacle = []
+        self.items = [self.robot_init, self.robot_goal, self.obstacle]
+        self.robot_num = 0
+        self.obstacle_num = 0
