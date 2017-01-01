@@ -1,5 +1,4 @@
 import math
-import copy
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
@@ -40,7 +39,11 @@ Point = Vec2
 Vector = Vec2
 
 class Polygon:
-    def __init__(self, data):
+    def __init__(self):
+        self.vertex_num = 0
+        self.vertices = []
+
+    def get_data(self, data):
         self.vertex_num = int(data.pop(0))
         self.vertices = []
         for _ in range(self.vertex_num):
@@ -55,15 +58,17 @@ class Polygon:
         return QPolygonF([v.toQPointF() for v in self.vertices])
 
     def configured(self, conf, scale = 1):
-        result = copy.deepcopy(self)
-        for i in range(len(result.vertices)):
-            result.vertices[i] = self.vertices[i].transform(conf, scale)
+        result = Polygon()
+        result.vertex_num = self.vertex_num
+        for v in self.vertices:
+            result.vertices.append(v.transform(conf, scale))
         return result
 
     def y_convert(self, height):
-        result = copy.deepcopy(self)
-        for i in range(len(result.vertices)):
-            result.vertices[i] = self.vertices[i].y_convert(height)
+        result = Polygon()
+        result.vertex_num = self.vertex_num
+        for v in self.vertices:
+            result.vertices.append(v.y_convert(height))
         return result
 
     def draw(self, painter, fill = True):
@@ -109,7 +114,7 @@ class Polygon:
         y_min = [-1 for _ in range(len(pfield))]
         y_max = [-1 for _ in range(len(pfield))]
 
-        for i in range(len(self.vertices)):
+        for i in range(self.vertex_num):
             if self.vertices[i-1].x <= self.vertices[i].x:
                 scan(self.vertices[i-1], self.vertices[i])
             else:
@@ -124,7 +129,7 @@ class Polygon:
             return math.copysign(1.0, Vec2.dot(a - origin, b - origin))
 
         sign = side(self.vertices[-1], self.vertices[0], p)
-        for i in range(1, len(self.vertices)):
+        for i in range(1, self.vertex_num):
             if side(self.vertices[i-1], self.vertices[i], p) != sign:
                 return False
         return True
@@ -137,8 +142,8 @@ class Polygon:
         def edge_collision(a0, a1, b0, b1):
             return side(a0, a1, b0) != side(a0, a1, b1) and side(b0, b1, a0) != side(b0, b1, a1)
 
-        for i in range(len(a.vertices)):
-            for j in range(len(b.vertices)):
+        for i in range(a.vertex_num):
+            for j in range(b.vertex_num):
                 if edge_collision(a.vertices[i-1], a.vertices[i], b.vertices[j-1], b.vertices[j]):
                     return True
         return False
@@ -149,7 +154,9 @@ class Item:
         self.polygon_num = int(data.pop(0))
         self.polygons = []
         for _ in range(self.polygon_num):
-            self.polygons.append(Polygon(data))
+            polygon = Polygon()
+            polygon.get_data(data)
+            self.polygons.append(polygon)
 
         #read init conf
         self.init_conf = [float(data.pop(0)), float(data.pop(0)), float(data.pop(0))]
