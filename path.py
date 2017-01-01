@@ -17,11 +17,15 @@ def find_path(scene, robot_index, width, height):
     def valid(robot):
         #collision test
         for obstacle in scene.obstacle:
-            if Item.collision(robot, obstacle):
-                return False
+            if sum([(robot.init_conf[i] - obstacle.init_conf[i])**2 for i in range(2)])**0.5 <= robot.radius + obstacle.radius:
+                if Item.collision(robot, obstacle):
+                    return False
+
         for robot_init in scene.robot_init:
-            if robot_init.index != robot.index and Item.collision(robot, robot_init):
-                return False
+            if robot_init.index != robot.index:
+                if sum([(robot.init_conf[i] - robot_init.init_conf[i])**2 for i in range(2)])**0.5 <= robot.radius + robot_init.radius:
+                    if Item.collision(robot, robot_init):
+                        return False
 
         #boundary test
         for poly in robot.polygons:

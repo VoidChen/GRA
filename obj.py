@@ -154,6 +154,14 @@ class Item:
         #read init conf
         self.init_conf = [float(data.pop(0)), float(data.pop(0)), float(data.pop(0))]
 
+        #calc radius
+        self.radius = 0
+        for poly in self.polygons:
+            for v in poly.vertices:
+                temp_radius = ((v.x**2) + (v.y**2))**0.5
+                if temp_radius > self.radius:
+                    self.radius = temp_radius
+
         #set other attr
         self.temp_conf = [0.0, 0.0, 0.0]
         self.index = 0
