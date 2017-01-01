@@ -13,41 +13,39 @@ def find_path(items, robot_index, width, height):
             sum += pfields[i][int(temp.x)][int(temp.y)]
         return sum
 
-    #extend function
-    neighbor = [[0, 0, 1], [0, 0, -1], [0, 1, 0], [0, -1, 0], [1, 0, 0], [-1, 0, 0]]
+    #validity test
+    def valid(robot):
+        #collision test
+        for item in items:
+            if type(item) is Obstacle and Item.collision(robot, item):
+                return False
+            if type(item) is Robot and item.type is 'init' and item.index != robot.index and Item.collision(robot, item):
+                return False
+
+        #boundary test
+        for poly in robot.polygons:
+            for v in poly.configured(robot.conf()).vertices:
+                if not (height > v.x >= 0 and width > v.y >= 0):
+                    return False
+
+        return True
+
     def extend(conf):
         if conf == goal:
-            nonlocal done
-            done = True
+            return True
 
         else:
             for i in neighbor:
                 new_conf = (conf[0]+i[0], conf[1]+i[1], (conf[2]+i[2])%360)
-                if height > new_conf[0] >= 0 and width > new_conf[1] >= 0:
-                    if new_conf not in visit:
-                        #check conf validity
-                        robot.init_conf = new_conf
-                        valid = True
-                        for item in items:
-                            if type(item) is Obstacle and Item.collision(robot, item):
-                                valid = False
-                                break
-                            if type(item) is Robot and item.type is 'init' and item.index != robot.index and Item.collision(robot, item):
-                                valid = False
-                                break
-                        for poly in robot.polygons:
-                            for v in poly.configured(robot.conf()).vertices:
-                                if not (height > v.x >= 0 and width > v.y >= 0):
-                                    valid = False
-                                    break
-                            if not valid:
-                                break
+                if new_conf not in visit and height > new_conf[0] >= 0 and width > new_conf[1] >= 0:
+                    visit[new_conf] = True
+                    robot.init_conf = new_conf
+                    if valid(robot):
+                        prev_conf[new_conf] = conf
+                        heap.put((calc_pvalue(new_conf), new_conf))
+            return False
 
-                        visit[new_conf] = True
-                        if valid:
-                            prev_conf[new_conf] = conf
-                            heap.put((calc_pvalue(new_conf), new_conf))
-
+    #trace path
     def backtrace(conf):
         if conf in prev_conf:
             return backtrace(prev_conf[conf]) + [conf]
@@ -57,6 +55,7 @@ def find_path(items, robot_index, width, height):
     #init
     t = time.time()
     robot = copy.deepcopy(items[robot_index*2])
+    neighbor = [[0, 0, 1], [0, 0, -1], [0, 1, 0], [0, -1, 0], [1, 0, 0], [-1, 0, 0]]
 
     #build pfields
     pfields = []
@@ -74,17 +73,20 @@ def find_path(items, robot_index, width, height):
     print('init:', init)
     print('goal:', goal)
 
+    #extend
     visit[init] = True
     heap.put((calc_pvalue(init), init))
-
     done = False
 
     while not done and not heap.empty():
         temp = heap.get()
-        extend(temp[1])
+        if extend(temp[1]):
+            done = True
+            break
 
     print('Find path used time:', time.time() - t)
 
+    #trace path
     if done:
         print('Find path!')
         return backtrace(goal) + [tuple(items[robot_index*2+1].init_conf)]
