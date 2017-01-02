@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
 scene = Scene()
+target_index = 0
 
 def draw_data(label, width_c, height_c, scale):
     pixmap = QPixmap(width_c, height_c)
@@ -37,12 +38,24 @@ def read_and_draw(label, width_c, height_c, scale):
     scene = read_data('robot.dat', 'obstacle.dat')
     draw_data(label, width_c, height_c, scale)
 
+def target_box_update(box, scene):
+    box.clear()
+    for i in range(scene.robot_num):
+        box.addItem('Target robot: {}'.format(i), QVariant(i))
+
+def target_box_changed(box):
+    global target_index
+    target_index = box.currentData()
+
 def pfield_box_update(box, scene):
     box.clear()
     box.addItem('No potential field')
     for i in range(scene.robot_num):
         for j in range(len(scene.robot_init[i].controls)):
             box.addItem('Robot {} ControlPoint {}'.format(i, j), QVariant([i, j]))
+
+    global target_index
+    target_index = 0
 
 def pfield_box_changed(box, label, scene, width_c, height_c):
     if box.currentIndex() is not 0:
@@ -58,7 +71,7 @@ def show_path(robot_index, label, total_time = 5):
         path.append(tuple(scene.robot_init[robot_index].init_conf))
         delay = total_time / len(path)
         for conf in path:
-            scene.robot_init[robot_index*2].init_conf = conf
+            scene.robot_init[robot_index].init_conf = conf
             draw_data(label, width_c, height_c, scale)
             QApplication.processEvents()
             time.sleep(delay)
@@ -140,15 +153,22 @@ if __name__ == '__main__':
     btn_read = QPushButton('Read data')
     btn_read.resize(100, 50)
     btn_read.clicked.connect(lambda: read_and_draw(label, width_c, height_c, scale))
+    btn_read.clicked.connect(lambda: target_box_update(box_target, scene))
     btn_read.clicked.connect(lambda: pfield_box_update(box_pfield, scene))
     btn_read.show()
 
     btn_show_path = QPushButton('Show path')
     btn_show_path.resize(100, 50)
-    btn_show_path.clicked.connect(lambda: show_path(0, label))
+    btn_show_path.clicked.connect(lambda: show_path(target_index, label))
     btn_show_path.show()
 
     #combobox
+    box_target = QComboBox()
+    box_target.resize(100, 50)
+    box_target.activated.connect(lambda: target_box_changed(box_target))
+    box_target.show()
+
+    #layout
     box_pfield = QComboBox()
     box_pfield.resize(100, 50)
     box_pfield.activated.connect(lambda: pfield_box_changed(box_pfield, label, scene, width_c, height_c))
@@ -162,6 +182,7 @@ if __name__ == '__main__':
     layout = QVBoxLayout()
     layout.addWidget(label)
     layout.addLayout(layout_btn)
+    layout.addWidget(box_target)
     layout.addWidget(box_pfield)
 
     widget.setLayout(layout)
