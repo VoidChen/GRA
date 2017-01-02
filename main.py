@@ -12,6 +12,24 @@ from PyQt5.QtCore import *
 scene = Scene()
 target_index = 0
 path_index = ([], -1)
+robot_filename = 'robot.dat'
+obstacle_filename = 'obstacle.dat'
+
+def load_robot():
+    robot_filename = QFileDialog.getOpenFileName()[0]
+    if robot_filename != '':
+        read_robot(scene, robot_filename)
+
+def load_obstacle():
+    obstacle_filename = QFileDialog.getOpenFileName()[0]
+    if obstacle_filename != '':
+        read_obstacle(scene, obstacle_filename)
+
+def reset():
+    if robot_filename != '':
+        read_robot(scene, robot_filename)
+    if obstacle_filename != '':
+        read_obstacle(scene, obstacle_filename)
 
 def draw_data(label, width_c, height_c, scale):
     pixmap = QPixmap(width_c, height_c)
@@ -33,11 +51,6 @@ def draw_data(label, width_c, height_c, scale):
     painter.end()
     label.clear()
     label.setPixmap(pixmap)
-
-def read_and_draw(label, width_c, height_c, scale):
-    global scene
-    scene = read_data('robot.dat', 'obstacle.dat')
-    draw_data(label, width_c, height_c, scale)
 
 def target_box_update(box, scene):
     box.clear()
@@ -158,12 +171,27 @@ if __name__ == '__main__':
     draw_data(label, width_c, height_c, scale)
 
     #button
-    btn_read = QPushButton('Read data')
-    btn_read.resize(100, 50)
-    btn_read.clicked.connect(lambda: read_and_draw(label, width_c, height_c, scale))
-    btn_read.clicked.connect(lambda: target_box_update(box_target, scene))
-    btn_read.clicked.connect(lambda: pfield_box_update(box_pfield, scene))
-    btn_read.show()
+    btn_load_robot = QPushButton('Load robot')
+    btn_load_robot.resize(100, 50)
+    btn_load_robot.clicked.connect(lambda: load_robot())
+    btn_load_robot.clicked.connect(lambda: draw_data(label, width_c, height_c, scale))
+    btn_load_robot.clicked.connect(lambda: target_box_update(box_target, scene))
+    btn_load_robot.clicked.connect(lambda: pfield_box_update(box_pfield, scene))
+    btn_load_robot.show()
+
+    btn_load_obstacle = QPushButton('Load obstacle')
+    btn_load_obstacle.resize(100, 50)
+    btn_load_obstacle.clicked.connect(lambda: load_obstacle())
+    btn_load_obstacle.clicked.connect(lambda: draw_data(label, width_c, height_c, scale))
+    btn_load_obstacle.show()
+
+    btn_reset = QPushButton('Reset')
+    btn_reset.resize(100, 50)
+    btn_reset.clicked.connect(lambda: reset())
+    btn_reset.clicked.connect(lambda: draw_data(label, width_c, height_c, scale))
+    btn_reset.clicked.connect(lambda: target_box_update(box_target, scene))
+    btn_reset.clicked.connect(lambda: pfield_box_update(box_pfield, scene))
+    btn_reset.show()
 
     btn_get_path = QPushButton('Search path')
     btn_get_path.resize(100, 50)
@@ -189,7 +217,9 @@ if __name__ == '__main__':
 
     #layout
     layout_btn = QHBoxLayout()
-    layout_btn.addWidget(btn_read)
+    layout_btn.addWidget(btn_load_robot)
+    layout_btn.addWidget(btn_load_obstacle)
+    layout_btn.addWidget(btn_reset)
     layout_btn.addWidget(btn_get_path)
     layout_btn.addWidget(btn_replay)
 
