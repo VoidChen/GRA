@@ -1,49 +1,15 @@
 import sys
 import math
-import copy
-import itertools
-import queue
 import time
 from obj import *
 from pfield import *
 from path import *
+from data import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
 scene = Scene()
-
-def read_data():
-    #init
-    global scene
-    scene = Scene()
-
-    #robot.dat
-    data = []
-    with open('robot.dat', 'r')as fread:
-        for line in fread:
-            if not line.startswith('#'):
-                data += line.split()
-
-    scene.robot_num = int(data.pop(0))
-    for i in range(scene.robot_num):
-        robot_temp = Robot(data)
-        robot_temp.index = i
-        scene.robot_init.append(copy.deepcopy(robot_temp))
-        robot_temp.init_conf = robot_temp.goal_conf
-        scene.robot_goal.append(copy.deepcopy(robot_temp))
-
-    #obstacle.dat
-    data = []
-    with open('obstacle.dat', 'r')as fread:
-        for line in fread:
-            if not line.startswith('#'):
-                data += line.split()
-
-    scene.obstacle_num = int(data.pop(0))
-    for i in range(scene.obstacle_num):
-        scene.obstacle.append(Obstacle(data))
-        scene.obstacle[-1].index = i
 
 def draw_data(label, width_c, height_c, scale):
     pixmap = QPixmap(width_c, height_c)
@@ -67,7 +33,8 @@ def draw_data(label, width_c, height_c, scale):
     label.setPixmap(pixmap)
 
 def read_and_draw(label, width_c, height_c, scale):
-    read_data()
+    global scene
+    scene = read_data('robot.dat', 'obstacle.dat')
     draw_data(label, width_c, height_c, scale)
 
 def pfield_box_update(box, scene):
