@@ -25,6 +25,10 @@ def build_pfield(scene, rc, width, height, scale = 1):
     for obstacle in scene.obstacle:
         obstacle.draw_pfield(pfield, scale)
 
+    for robot in scene.robot_init:
+        if robot.index != rc[0]:
+            robot.draw_pfield(pfield, scale)
+
     #set start
     start = scene.robot_goal[rc[0]].controls[rc[1]].transform(scene.robot_goal[rc[0]].conf(), scale)
     max_potential = 1

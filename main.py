@@ -42,7 +42,7 @@ def read_and_draw(label, width_c, height_c, scale):
 def target_box_update(box, scene):
     box.clear()
     for i in range(scene.robot_num):
-        box.addItem('Target robot: {}'.format(i), QVariant(i))
+        box.addItem('Target: Robot {}'.format(i), QVariant(i))
 
 def target_box_changed(box):
     global target_index, path_index
