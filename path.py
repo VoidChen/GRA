@@ -14,7 +14,7 @@ def find_path(scene, robot_index, width, height):
         return sum
 
     #validity test
-    def valid(robot):
+    def validity_test(robot):
         #collision test
         for obstacle in scene.obstacle:
             if sum([(robot.init_conf[i] - obstacle.init_conf[i])**2 for i in range(2)])**0.5 <= robot.radius + obstacle.radius:
@@ -42,10 +42,10 @@ def find_path(scene, robot_index, width, height):
         else:
             for i in neighbor:
                 new_conf = (conf[0]+i[0], conf[1]+i[1], (conf[2]+i[2])%360)
-                if new_conf not in visit and height > new_conf[0] >= 0 and width > new_conf[1] >= 0:
-                    visit[new_conf] = True
+                if new_conf not in valid and height > new_conf[0] >= 0 and width > new_conf[1] >= 0:
                     robot.init_conf = new_conf
-                    if valid(robot):
+                    valid[new_conf] = validity_test(robot)
+                    if valid[new_conf]:
                         prev_conf[new_conf] = conf
                         heap.put((calc_pvalue(new_conf), new_conf))
             return False
@@ -69,7 +69,7 @@ def find_path(scene, robot_index, width, height):
 
     #init heap and cspace
     heap = queue.PriorityQueue()
-    visit = {}
+    valid = {}
     prev_conf = {}
 
     #set init and goal
@@ -83,7 +83,7 @@ def find_path(scene, robot_index, width, height):
     print('goal:', goal)
 
     #extend
-    visit[init] = True
+    valid[init] = True
     heap.put((calc_pvalue(init), init))
     done = False
 
@@ -98,7 +98,7 @@ def find_path(scene, robot_index, width, height):
     #trace path
     if done:
         print('Find path!')
-        return backtrace(goal) + [tuple(scene.robot_goal[robot_index].init_conf)]
+        return backtrace(goal) + [tuple(scene.robot_goal[robot_index].init_conf)], valid
     else:
         print('Fail...')
-        return [init]
+        return [init], valid

@@ -11,6 +11,7 @@ from PyQt5.QtCore import *
 
 scene = Scene()
 target_index = 0
+path_index = ([], -1)
 
 def draw_data(label, width_c, height_c, scale):
     pixmap = QPixmap(width_c, height_c)
@@ -44,8 +45,9 @@ def target_box_update(box, scene):
         box.addItem('Target robot: {}'.format(i), QVariant(i))
 
 def target_box_changed(box):
-    global target_index
+    global target_index, path_index
     target_index = box.currentData()
+    path_index = ([], -1)
 
 def pfield_box_update(box, scene):
     box.clear()
@@ -65,9 +67,9 @@ def pfield_box_changed(box, label, scene, width_c, height_c):
     else:
         draw_data(label, width_c, height_c, scale)
 
-def show_path(robot_index, label, total_time = 5):
-    path = find_path(scene, robot_index, width, height)
-    if len(path) is not 1:
+def show_path(total_time = 5):
+    path, robot_index = path_index
+    if len(path) > 1:
         path.append(tuple(scene.robot_init[robot_index].init_conf))
         delay = total_time / len(path)
         for conf in path:
@@ -75,6 +77,12 @@ def show_path(robot_index, label, total_time = 5):
             draw_data(label, width_c, height_c, scale)
             QApplication.processEvents()
             time.sleep(delay)
+
+def get_path(robot_index):
+    global path_index
+    path, valid_map = find_path(scene, robot_index, width, height)
+    path_index = (path, robot_index)
+    show_path()
 
 class CustomLabel(QLabel):
     def __init__(self, parent=None, flags=Qt.WindowFlags()):
@@ -133,8 +141,8 @@ if __name__ == '__main__':
     #init
     width = 128
     height = 128
-    width_c = 400
-    height_c = 400
+    width_c = 600
+    height_c = 600
     scale = width_c/width
     app = QApplication(sys.argv)
 
@@ -157,10 +165,15 @@ if __name__ == '__main__':
     btn_read.clicked.connect(lambda: pfield_box_update(box_pfield, scene))
     btn_read.show()
 
-    btn_show_path = QPushButton('Show path')
-    btn_show_path.resize(100, 50)
-    btn_show_path.clicked.connect(lambda: show_path(target_index, label))
-    btn_show_path.show()
+    btn_get_path = QPushButton('Search path')
+    btn_get_path.resize(100, 50)
+    btn_get_path.clicked.connect(lambda: get_path(target_index))
+    btn_get_path.show()
+
+    btn_replay = QPushButton('Replay')
+    btn_replay.resize(100, 50)
+    btn_replay.clicked.connect(lambda: show_path())
+    btn_replay.show()
 
     #combobox
     box_target = QComboBox()
@@ -177,7 +190,8 @@ if __name__ == '__main__':
     #layout
     layout_btn = QHBoxLayout()
     layout_btn.addWidget(btn_read)
-    layout_btn.addWidget(btn_show_path)
+    layout_btn.addWidget(btn_get_path)
+    layout_btn.addWidget(btn_replay)
 
     layout = QVBoxLayout()
     layout.addWidget(label)
