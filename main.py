@@ -16,11 +16,13 @@ robot_filename = 'robot.dat'
 obstacle_filename = 'obstacle.dat'
 
 def load_robot():
+    global robot_filename
     robot_filename = QFileDialog.getOpenFileName()[0]
     if robot_filename != '':
         read_robot(scene, robot_filename)
 
 def load_obstacle():
+    global obstacle_filename
     obstacle_filename = QFileDialog.getOpenFileName()[0]
     if obstacle_filename != '':
         read_obstacle(scene, obstacle_filename)
