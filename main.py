@@ -216,12 +216,12 @@ if __name__ == '__main__':
     btn_get_path.clicked.connect(lambda: get_path())
     btn_get_path.show()
 
-    btn_smooth = QPushButton('Smooth')
+    btn_smooth = QPushButton('Smooth path')
     btn_smooth.resize(100, 50)
     btn_smooth.clicked.connect(lambda: path_smoothing())
     btn_smooth.show()
 
-    btn_replay = QPushButton('Replay')
+    btn_replay = QPushButton('Replay path')
     btn_replay.resize(100, 50)
     btn_replay.clicked.connect(lambda: show_path())
     btn_replay.show()
