@@ -12,6 +12,7 @@ from PyQt5.QtCore import *
 scene = Scene()
 target_index = 0
 path_index = ([], -1)
+valid_map = {}
 robot_filename = 'robot.dat'
 obstacle_filename = 'obstacle.dat'
 
@@ -84,20 +85,29 @@ def pfield_box_changed(box, label, scene, width_c, height_c):
 
 def show_path(total_time = 5):
     path, robot_index = path_index
+    path_smoothing()
     if len(path) > 1:
-        path.append(tuple(scene.robot_init[robot_index].init_conf))
+        init = [tuple(scene.robot_goal[robot_index].init_conf)]
+        goal = [tuple(scene.robot_init[robot_index].init_conf)]
         delay = total_time / len(path)
-        for conf in path:
+        for conf in path + init + goal:
             scene.robot_init[robot_index].init_conf = conf
             draw_data(label, width_c, height_c, scale)
             QApplication.processEvents()
             time.sleep(delay)
 
-def get_path(robot_index):
-    global path_index
-    path, valid_map = find_path(scene, robot_index, width, height)
-    path_index = (path, robot_index)
+def get_path():
+    global path_index, valid_map
+    path, valid_map = find_path(scene, target_index, width, height)
+    path_index = (path, target_index)
     show_path()
+
+def path_smoothing():
+    global path_index
+    path, robot_index = path_index
+    sp = smooth_path(path, valid_map, scene, target_index, width, height)
+    path_index = (sp, target_index)
+    print('Smooth path from {} to {}'.format(len(path), len(sp)))
 
 class CustomLabel(QLabel):
     def __init__(self, parent=None, flags=Qt.WindowFlags()):
@@ -197,7 +207,7 @@ if __name__ == '__main__':
 
     btn_get_path = QPushButton('Search path')
     btn_get_path.resize(100, 50)
-    btn_get_path.clicked.connect(lambda: get_path(target_index))
+    btn_get_path.clicked.connect(lambda: get_path())
     btn_get_path.show()
 
     btn_replay = QPushButton('Replay')
