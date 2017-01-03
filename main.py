@@ -85,7 +85,6 @@ def pfield_box_changed(box, label, scene, width_c, height_c):
 
 def show_path(total_time = 5):
     path, robot_index = path_index
-    path_smoothing()
     if len(path) > 1:
         init = [tuple(scene.robot_goal[robot_index].init_conf)]
         goal = [tuple(scene.robot_init[robot_index].init_conf)]
@@ -103,10 +102,17 @@ def get_path():
     show_path()
 
 def path_smoothing():
+    t = time.time()
+
     global path_index
     path, robot_index = path_index
-    sp = smooth_path(path, valid_map, scene, target_index, width, height)
+
+    sp = path
+    for _ in range(100):
+        sp = smooth_path(sp, valid_map, scene, target_index, width, height)
+
     path_index = (sp, target_index)
+    print('Smooth path used time:', time.time() - t)
     print('Smooth path from {} to {}'.format(len(path), len(sp)))
 
 class CustomLabel(QLabel):
@@ -210,6 +216,11 @@ if __name__ == '__main__':
     btn_get_path.clicked.connect(lambda: get_path())
     btn_get_path.show()
 
+    btn_smooth = QPushButton('Smooth')
+    btn_smooth.resize(100, 50)
+    btn_smooth.clicked.connect(lambda: path_smoothing())
+    btn_smooth.show()
+
     btn_replay = QPushButton('Replay')
     btn_replay.resize(100, 50)
     btn_replay.clicked.connect(lambda: show_path())
@@ -228,16 +239,20 @@ if __name__ == '__main__':
     box_pfield.show()
 
     #layout
-    layout_btn = QHBoxLayout()
-    layout_btn.addWidget(btn_load_robot)
-    layout_btn.addWidget(btn_load_obstacle)
-    layout_btn.addWidget(btn_reset)
-    layout_btn.addWidget(btn_get_path)
-    layout_btn.addWidget(btn_replay)
+    layout_btn_data = QHBoxLayout()
+    layout_btn_data.addWidget(btn_load_robot)
+    layout_btn_data.addWidget(btn_load_obstacle)
+    layout_btn_data.addWidget(btn_reset)
+
+    layout_btn_path = QHBoxLayout()
+    layout_btn_path.addWidget(btn_get_path)
+    layout_btn_path.addWidget(btn_smooth)
+    layout_btn_path.addWidget(btn_replay)
 
     layout = QVBoxLayout()
     layout.addWidget(label)
-    layout.addLayout(layout_btn)
+    layout.addLayout(layout_btn_data)
+    layout.addLayout(layout_btn_path)
     layout.addWidget(box_target)
     layout.addWidget(box_pfield)
 

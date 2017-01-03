@@ -107,6 +107,9 @@ def find_path(scene, robot_index, width, height):
 def straight_path(start, end):
     diff = [e-s for s, e in zip(start, end)]
     absdiff = [x if x > 0 else -x for x in diff]
+    if absdiff[2] > 180:
+        absdiff[2] = 360 - absdiff[2]
+        diff[2] *= -1
     steps = []
     for i in range(3):
         sign = 1 if diff[i] > 0 else -1
@@ -118,7 +121,7 @@ def straight_path(start, end):
     current = list(start)
     for step in steps:
         current[step[0]] += step[1]
-        result.append(tuple(current))
+        result.append((current[0], current[1], current[2]%360))
 
     return result
 
@@ -134,9 +137,9 @@ def path_validity_test(path, valid, robot, scene, width, height):
     return True
 
 def smooth_path(path, valid, scene, robot_index, width, height):
+    robot = copy.deepcopy(scene.robot_init[robot_index])
     sp = straight_path(path[0], path[-1])
     if len(sp) < len(path):
-        robot = copy.deepcopy(scene.robot_init[robot_index])
         if path_validity_test(sp, valid, robot, scene, width, height):
             return sp
         else:
