@@ -81,48 +81,38 @@ class Polygon:
             painter.fillPath(path, brush)
 
     def draw_pfield(self, pfield):
+        def set_pfield(x, y):
+            if x_max >= x >= 0 and y_max >= y >= 0:
+                pfield[x][y] = -2
+
         def scan(v1, v2):
-            nonlocal x_min, x_max, y_min, y_max
+            if v1.x == v2.x or abs(v1.y - v2.y) > abs(v1.x - v2.x):
+                if(v1.y > v2.y):
+                    v1, v2 = v2, v1
 
-            x_start = max(math.ceil(v1.x), 0)
-            x_end = min(math.floor(v2.x), len(pfield)-1)
-
-            if x_start < x_min or x_min is -1:
-                x_min = math.floor(v1.x)
-            if x_end > x_max or x_max is -1:
-                x_max = math.ceil(v2.x)
-
-            if v1.x != v2.x:
-                dy = (v2.y - v1.y)/(v2.x - v1.x)
-                for x in range(x_start, x_end+1):
-                    y = (x-v1.x) * dy + v1.y
-                    if y > y_max[x] or y_max[x] is -1:
-                        y_max[x] = y
-                    if y < y_min[x] or y_min[x] is -1:
-                        y_min[x] = y
+                dx = (v2.x - v1.x)/(v2.y - v1.y)
+                x = v1.x
+                for y in range(math.floor(v1.y), math.ceil(v2.y)+1):
+                    set_pfield(round(x), round(y))
+                    x += dx
             else:
-                x = min(x_start, len(pfield)-1)
-                y = max(v1.y, v2.y)
-                if y > y_max[x] or y_max[x] is -1:
-                    y_max[x] = y
-                y = min(v1.y, v2.y)
-                if y < y_min[x] or y_min[x] is -1:
-                    y_min[x] = y
+                if(v1.x > v2.x):
+                    v1, v2 = v2, v1
 
-        x_min = -1
-        x_max = -1
-        y_min = [-1 for _ in range(len(pfield))]
-        y_max = [-1 for _ in range(len(pfield))]
+                dy = (v2.y - v1.y)/(v2.x - v1.x)
+                y = v1.y
+                for x in range(math.floor(v1.x), math.ceil(v2.x)+1):
+                    set_pfield(round(x), round(y))
+                    y += dy
+
+        x_max = len(pfield) - 1
+        y_max = len(pfield[0]) - 1
 
         for i in range(self.vertex_num):
             if self.vertices[i-1].x <= self.vertices[i].x:
                 scan(self.vertices[i-1], self.vertices[i])
             else:
                 scan(self.vertices[i], self.vertices[i-1])
-
-        for i in range(x_min, min(x_max+1, len(pfield))):
-            for j in range(max(math.floor(y_min[i]), 0), min(math.ceil(y_max[i])+1, len(pfield[0]))):
-                pfield[i][j] = -2
 
     def contains(self, p):
         def side(origin, a, b):
