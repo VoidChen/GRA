@@ -99,10 +99,10 @@ def find_path(scene, robot_index, width, height):
     #trace path
     if done:
         print('Find path!')
-        return backtrace(goal) + [tuple(scene.robot_goal[robot_index].init_conf)], valid
+        return backtrace(goal), valid
     else:
         print('Fail...')
-        return [init], valid
+        return [], valid
 
 def straight_path(start, end):
     diff = [e-s for s, e in zip(start, end)]
@@ -115,9 +115,33 @@ def straight_path(start, end):
     random.shuffle(steps)
 
     result = [start[:]]
-    current = start
+    current = list(start)
     for step in steps:
         current[step[0]] += step[1]
-        result.append(current[:])
+        result.append(tuple(current))
 
     return result
+
+def path_validity_test(path, valid, robot, scene, width, height):
+    for conf in path:
+        if conf not in valid:
+            robot.init_conf = conf
+            valid[conf] = validity_test(robot, scene, width, height)
+
+        if not valid[conf]:
+            return False
+
+    return True
+
+def smooth_path(path, valid, scene, robot_index, width, height):
+    sp = straight_path(path[0], path[-1])
+    if len(sp) < len(path):
+        robot = copy.deepcopy(scene.robot_init[robot_index])
+        if path_validity_test(sp, valid, robot, scene, width, height):
+            return sp
+        else:
+            first = smooth_path(path[:len(path)//2], valid, scene, robot_index, width, height)
+            second = smooth_path(path[len(path)//2:], valid, scene, robot_index, width, height)
+            return first + second
+    else:
+        return path
