@@ -69,7 +69,7 @@ def find_path(scene, robot_index, width, height):
     #build pfields
     pfields = []
     for i in range(len(robot.controls)):
-        pfields.append(build_pfield(scene, [robot_index, i], width, height))
+        pfields.append(build_average_pfield(scene, [robot_index, i], width, height))
 
     #init heap and cspace
     heap = queue.PriorityQueue()

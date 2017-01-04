@@ -2,6 +2,25 @@ import time
 from obj import *
 from PyQt5.QtGui import *
 
+
+def build_average_pfield(scene, rc, width, height, scale = 1, size = 10):
+    border = int(scene.robot_init[rc[0]].radius)
+    levels = list(range(0, border, border//size))
+    levels.append(border)
+
+    pfields = []
+    for i in levels:
+        pfields.append(build_pfield(scene, rc, width, height, scale=scale, border=i))
+
+    result = [[0 for _ in range(height)] for _ in range(width)]
+    for i in range(width):
+        for j in range(height):
+            for k in range(len(levels)):
+                result[i][j] += pfields[k][i][j]
+            result[i][j] /= len(levels)
+
+    return result
+
 def build_pfield(scene, rc, width, height, scale = 1, border = 0):
     #extend function
     neighbor = [[0, 1], [0, -1], [1, 0], [-1, 0]]

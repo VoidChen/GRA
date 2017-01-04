@@ -78,7 +78,7 @@ def pfield_box_update(box, scene):
 def pfield_box_changed(box, label, scene, width_c, height_c):
     if box.currentIndex() is not 0:
         rc = box.currentData()
-        pfield = build_pfield(scene, rc, width_c, height_c, scale)
+        pfield = build_average_pfield(scene, rc, width_c, height_c, scale)
         draw_pfield(label, pfield, width_c, height_c)
     else:
         draw_data(label, width_c, height_c, scale)
