@@ -15,7 +15,8 @@ path_index = ([], -1)
 valid_map = {}
 robot_filename = 'robot.dat'
 obstacle_filename = 'obstacle.dat'
-border_extend = False
+pfield_enhance = False
+pvalue_enhance = True
 
 def load_robot():
     global robot_filename
@@ -79,14 +80,18 @@ def pfield_box_update(box, scene):
 def pfield_box_changed(box, label, scene, width_c, height_c):
     if box.currentIndex() is not 0:
         rc = box.currentData()
-        pfield = build_pfield(scene, rc, width_c, height_c, scale, border_extend)
+        pfield = build_pfield(scene, rc, width_c, height_c, scale, pfield_enhance)
         draw_pfield(label, pfield, width_c, height_c)
     else:
         draw_data(label, width_c, height_c, scale)
 
-def pfield_extend_box_changed(box):
-    global border_extend
-    border_extend = box.currentData()
+def pfield_enhance_box_changed(box):
+    global pfield_enhance
+    pfield_enhance = box.currentData()
+
+def pvalue_enhance_box_changed(box):
+    global pvalue_enhance
+    pvalue_enhance = box.currentData()
 
 def show_path(total_time = 5):
     path, robot_index = path_index
@@ -102,7 +107,7 @@ def show_path(total_time = 5):
 
 def get_path():
     global path_index, valid_map
-    path, valid_map = find_path(scene, target_index, width, height, border_extend)
+    path, valid_map = find_path(scene, target_index, width, height, border_extend=pfield_enhance, pvalue_enhance=pvalue_enhance)
     path_index = (path, target_index)
     show_path()
 
@@ -242,12 +247,21 @@ if __name__ == '__main__':
     box_pfield.activated.connect(lambda: pfield_box_changed(box_pfield, label, scene, width_c, height_c))
     box_pfield.show()
 
-    box_pfield_extend = QComboBox()
-    box_pfield_extend.resize(100, 50)
-    box_pfield_extend.activated.connect(lambda: pfield_extend_box_changed(box_pfield_extend))
-    box_pfield_extend.addItem('Potential field enhance: Off', QVariant(False))
-    box_pfield_extend.addItem('Potential field enhance: On', QVariant(True))
-    box_pfield_extend.show()
+    box_pfield_enhance = QComboBox()
+    box_pfield_enhance.resize(100, 50)
+    box_pfield_enhance.activated.connect(lambda: pfield_enhance_box_changed(box_pfield_enhance))
+    box_pfield_enhance.addItem('Potential field enhance: On', QVariant(True))
+    box_pfield_enhance.addItem('Potential field enhance: Off', QVariant(False))
+    box_pfield_enhance.setCurrentIndex(1)
+    box_pfield_enhance.show()
+
+    box_pvalue_enhance = QComboBox()
+    box_pvalue_enhance.resize(100, 50)
+    box_pvalue_enhance.activated.connect(lambda: pvalue_enhance_box_changed(box_pvalue_enhance))
+    box_pvalue_enhance.addItem('Potential value enhance: On', QVariant(True))
+    box_pvalue_enhance.addItem('Potential value enhance: Off', QVariant(False))
+    box_pvalue_enhance.show()
+
 
     #layout
     layout_btn_data = QHBoxLayout()
@@ -266,7 +280,8 @@ if __name__ == '__main__':
     layout.addLayout(layout_btn_path)
     layout.addWidget(box_target)
     layout.addWidget(box_pfield)
-    layout.addWidget(box_pfield_extend)
+    layout.addWidget(box_pfield_enhance)
+    layout.addWidget(box_pvalue_enhance)
 
     widget.setLayout(layout)
 

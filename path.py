@@ -29,13 +29,20 @@ def validity_test(robot, scene, width, height):
     return True
 
 
-def find_path(scene, robot_index, width, height, border_extend = False):
+def find_path(scene, robot_index, width, height, border_extend = False, pvalue_enhance = False):
     def calc_pvalue(conf):
-        sum = 0
+        result = 0
         for i in range(len(robot.controls)):
             temp = robot.controls[i].transform(conf)
-            sum += pfields[i][int(temp.x)][int(temp.y)]
-        return sum
+            result += pfields[i][int(temp.x)][int(temp.y)]
+
+        if pvalue_enhance:
+            diff = [abs(conf[i] - goal[i]) for i in range(3)]
+            diff[2] = 360 - diff[2] if diff[2] > 180 else diff[2]
+            result += sum([diff_value[i][diff[i]] for i in range(3)])
+
+        return result
+
     def extend(conf):
         if conf == goal:
             return True
@@ -65,6 +72,11 @@ def find_path(scene, robot_index, width, height, border_extend = False):
     t = time.time()
     robot = copy.deepcopy(scene.robot_init[robot_index])
     neighbor = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]]
+
+    if pvalue_enhance:
+        diff_value = []
+        for size in [width, height, 180]:
+            diff_value.append([i/size * 50 for i in range(size+1)])
 
     #build pfields
     pfields = []
