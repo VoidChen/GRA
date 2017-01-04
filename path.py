@@ -72,21 +72,24 @@ def find_path(scene, robot_index, width, height, border_extend = False, pvalue_e
     t = time.time()
     robot = copy.deepcopy(scene.robot_init[robot_index])
     neighbor = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]]
+    heap = queue.PriorityQueue()
+    valid = {}
+    prev_conf = {}
 
     if pvalue_enhance:
         diff_value = []
         for size in [width, height, 180]:
             diff_value.append([i/size * 50 for i in range(size+1)])
 
+    #init conf validity check
+    if not validity_test(robot, scene, width, height):
+        print('robot init conf not valid')
+        return [], valid
+
     #build pfields
     pfields = []
     for i in range(len(robot.controls)):
         pfields.append(build_pfield(scene, [robot_index, i], width, height, border_extend=border_extend))
-
-    #init heap and cspace
-    heap = queue.PriorityQueue()
-    valid = {}
-    prev_conf = {}
 
     #set init and goal
     init_conf = [int(x) for x in scene.robot_init[robot_index].init_conf]
