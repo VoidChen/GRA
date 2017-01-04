@@ -146,8 +146,10 @@ def smooth_path(path, valid, scene, robot_index, width, height):
         if path_validity_test(sp, valid, robot, scene, width, height):
             return sp
         else:
-            first = smooth_path(path[:len(path)//2], valid, scene, robot_index, width, height)
-            second = smooth_path(path[len(path)//2:], valid, scene, robot_index, width, height)
+            slice_point = random.randint(1, len(path)-1)
+
+            first = smooth_path(path[:slice_point], valid, scene, robot_index, width, height)
+            second = smooth_path(path[slice_point:], valid, scene, robot_index, width, height)
             return first + second
     else:
         return path
