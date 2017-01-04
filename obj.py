@@ -92,7 +92,7 @@ class Polygon:
 
                 dx = (v2.x - v1.x)/(v2.y - v1.y)
                 x = v1.x
-                for y in range(math.floor(v1.y), math.ceil(v2.y)+1):
+                for y in range(round(v1.y), round(v2.y)+1):
                     set_pfield(round(x), round(y))
                     x += dx
             else:
@@ -101,7 +101,7 @@ class Polygon:
 
                 dy = (v2.y - v1.y)/(v2.x - v1.x)
                 y = v1.y
-                for x in range(math.floor(v1.x), math.ceil(v2.x)+1):
+                for x in range(round(v1.x), round(v2.x)+1):
                     set_pfield(round(x), round(y))
                     y += dy
 
