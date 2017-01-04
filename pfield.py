@@ -48,7 +48,6 @@ def build_pfield(scene, rc, width, height, scale = 1, border_extend = 0):
         for j in range(height):
             if pfield[i][j] < 0:
                 pfield[i][j] = max_potential * 1.5
-    max_potential *= 1.5
 
     print('Build potential field used time:', time.time() - t)
 
