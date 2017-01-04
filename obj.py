@@ -80,10 +80,29 @@ class Polygon:
             path.addPolygon(poly)
             painter.fillPath(path, brush)
 
-    def draw_pfield(self, pfield):
+    def draw_pfield(self, pfield, extend = 0):
+        def extend_neighbor(n):
+            base = []
+            for i in range(1, n):
+                base.append([i, n-i])
+
+            result = [[0, n], [n, 0], [0, -n], [-n, 0]]
+            for x in base:
+                result.append(x)
+                result.append([x[0], x[1] * -1])
+                result.append([x[0] * -1, x[1]])
+                result.append([x[0] * -1, x[1] * -1])
+
+            return result
+
         def set_pfield(x, y):
             if x_max >= x >= 0 and y_max >= y >= 0:
                 pfield[x][y] = -2
+
+            for neighbor in en:
+                nx, ny = x + neighbor[0], y + neighbor[1]
+                if x_max >= nx >= 0 and y_max >= ny >= 0:
+                    pfield[nx][ny] = -2
 
         def scan(v1, v2):
             if v1.x == v2.x or abs(v1.y - v2.y) > abs(v1.x - v2.x):
@@ -107,6 +126,7 @@ class Polygon:
 
         x_max = len(pfield) - 1
         y_max = len(pfield[0]) - 1
+        en = extend_neighbor(extend)
 
         for i in range(self.vertex_num):
             if self.vertices[i-1].x <= self.vertices[i].x:
@@ -193,9 +213,9 @@ class Item:
         for poly in self.polygons:
             poly.configured(self.conf(), scale).y_convert(height_c).draw(painter)
 
-    def draw_pfield(self, pfield, scale = 1):
+    def draw_pfield(self, pfield, scale = 1, extend = 0):
         for poly in self.polygons:
-            poly.configured(self.conf(), scale).draw_pfield(pfield)
+            poly.configured(self.conf(), scale).draw_pfield(pfield, int(extend * scale))
 
     @staticmethod
     def collision(a, b):
