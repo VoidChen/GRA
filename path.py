@@ -29,7 +29,7 @@ def validity_test(robot, scene, width, height):
     return True
 
 
-def find_path(scene, robot_index, width, height):
+def find_path(scene, robot_index, width, height, border_extend = False):
     def calc_pvalue(conf):
         sum = 0
         for i in range(len(robot.controls)):
@@ -69,7 +69,7 @@ def find_path(scene, robot_index, width, height):
     #build pfields
     pfields = []
     for i in range(len(robot.controls)):
-        pfields.append(build_pfield(scene, [robot_index, i], width, height))
+        pfields.append(build_pfield(scene, [robot_index, i], width, height, border_extend=border_extend))
 
     #init heap and cspace
     heap = queue.PriorityQueue()

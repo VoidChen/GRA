@@ -15,6 +15,7 @@ path_index = ([], -1)
 valid_map = {}
 robot_filename = 'robot.dat'
 obstacle_filename = 'obstacle.dat'
+border_extend = False
 
 def load_robot():
     global robot_filename
@@ -78,10 +79,14 @@ def pfield_box_update(box, scene):
 def pfield_box_changed(box, label, scene, width_c, height_c):
     if box.currentIndex() is not 0:
         rc = box.currentData()
-        pfield = build_pfield(scene, rc, width_c, height_c, scale)
+        pfield = build_pfield(scene, rc, width_c, height_c, scale, border_extend)
         draw_pfield(label, pfield, width_c, height_c)
     else:
         draw_data(label, width_c, height_c, scale)
+
+def pfield_extend_box_changed(box):
+    global border_extend
+    border_extend = box.currentData()
 
 def show_path(total_time = 5):
     path, robot_index = path_index
@@ -97,7 +102,7 @@ def show_path(total_time = 5):
 
 def get_path():
     global path_index, valid_map
-    path, valid_map = find_path(scene, target_index, width, height)
+    path, valid_map = find_path(scene, target_index, width, height, border_extend)
     path_index = (path, target_index)
     show_path()
 
@@ -232,11 +237,17 @@ if __name__ == '__main__':
     box_target.activated.connect(lambda: target_box_changed(box_target))
     box_target.show()
 
-    #layout
     box_pfield = QComboBox()
     box_pfield.resize(100, 50)
     box_pfield.activated.connect(lambda: pfield_box_changed(box_pfield, label, scene, width_c, height_c))
     box_pfield.show()
+
+    box_pfield_extend = QComboBox()
+    box_pfield_extend.resize(100, 50)
+    box_pfield_extend.activated.connect(lambda: pfield_extend_box_changed(box_pfield_extend))
+    box_pfield_extend.addItem('Potential field enhance: Off', QVariant(False))
+    box_pfield_extend.addItem('Potential field enhance: On', QVariant(True))
+    box_pfield_extend.show()
 
     #layout
     layout_btn_data = QHBoxLayout()
@@ -255,6 +266,7 @@ if __name__ == '__main__':
     layout.addLayout(layout_btn_path)
     layout.addWidget(box_target)
     layout.addWidget(box_pfield)
+    layout.addWidget(box_pfield_extend)
 
     widget.setLayout(layout)
 
