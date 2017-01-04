@@ -53,10 +53,13 @@ def find_path(scene, robot_index, width, height):
 
     #trace path
     def backtrace(conf):
-        if conf in prev_conf:
-            return backtrace(prev_conf[conf]) + [conf]
-        else:
-            return [conf]
+        path = [conf]
+        while conf in prev_conf:
+            conf = prev_conf[conf]
+            path.append(conf)
+
+        path.reverse()
+        return path
 
     #init
     t = time.time()
@@ -89,8 +92,8 @@ def find_path(scene, robot_index, width, height):
     done = False
 
     while not done and not heap.empty():
-        temp = heap.get()
-        if extend(temp[1]):
+        next_conf = heap.get()
+        if extend(next_conf[1]):
             done = True
             break
 
