@@ -2,7 +2,7 @@ import time
 from obj import *
 from PyQt5.QtGui import *
 
-def build_pfield(scene, rc, width, height, scale = 1, border = 0):
+def build_pfield(scene, rc, width, height, scale = 1, border_extend = False):
     #extend function
     neighbor = [[0, 1], [0, -1], [1, 0], [-1, 0]]
     def extend(x, y):
@@ -18,8 +18,12 @@ def build_pfield(scene, rc, width, height, scale = 1, border = 0):
 
     t = time.time()
 
-    #init pfield
+    #init
     pfield = [[-1 for _ in range(height)] for _ in range(width)]
+    if border_extend:
+        border = int(scene.robot_goal[rc[0]].control_radius[rc[1]])
+    else:
+        border = 0
 
     #draw obstacle
     for obstacle in scene.obstacle:
