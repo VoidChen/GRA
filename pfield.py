@@ -3,6 +3,9 @@ from obj import *
 from PyQt5.QtGui import *
 
 def build_pfield(scene, rc, width, height, scale = 1, border_extend = 0):
+    #init border
+    border_extend = math.floor(scene.robot_goal[rc[0]].control_radius[rc[1]])
+
     #extend function
     neighbor = [[0, 1], [0, -1], [1, 0], [-1, 0]]
     def extend(x, y):

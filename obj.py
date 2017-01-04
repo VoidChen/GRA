@@ -22,18 +22,31 @@ class Vec2:
     def y_convert(self, height):
         return Point(self.x, height - self.y)
 
+    def length(self):
+        return (self.x**2 + self.y**2)**0.5
+
     def __add__(self, other):
         return Vec2(self.x + other.x, self.y + other.y)
 
     def __sub__(self, other):
         return Vec2(self.x - other.x, self.y - other.y)
 
+    def __mul__(self, other):
+        return Vec2(self.x * other, self.y * other)
+
+    def __truediv__(self, other):
+        return Vec2(self.x / other, self.y / other)
+
     def __str__(self):
         return '({}, {})'.format(self.x, self.y)
 
     @staticmethod
-    def dot(a, b):
+    def cross(a, b):
         return a.x * b.y - a.y * b.x
+
+    @staticmethod
+    def dot(a, b):
+        return a.x * b.x + a.y * b.y
 
 Point = Vec2
 Vector = Vec2
@@ -136,7 +149,7 @@ class Polygon:
 
     def contains(self, p):
         def side(origin, a, b):
-            return math.copysign(1.0, Vec2.dot(a - origin, b - origin))
+            return math.copysign(1.0, Vec2.cross(a - origin, b - origin))
 
         sign = side(self.vertices[-1], self.vertices[0], p)
         for i in range(1, self.vertex_num):
@@ -147,7 +160,7 @@ class Polygon:
     @staticmethod
     def collision(a, b):
         def side(origin, a, b):
-            return math.copysign(1.0, Vec2.dot(a - origin, b - origin))
+            return math.copysign(1.0, Vec2.cross(a - origin, b - origin))
 
         def edge_collision(a0, a1, b0, b1):
             return side(a0, a1, b0) != side(a0, a1, b1) and side(b0, b1, a0) != side(b0, b1, a1)
@@ -237,6 +250,26 @@ class Robot(Item):
         self.controls = []
         for _ in range(self.control_num):
             self.controls.append(Point(float(data.pop(0)), float(data.pop(0))))
+
+        #calc control point radius
+        self.calc_control_point_radius()
+
+    def calc_control_point_radius(self):
+        def nearest(point, end_a, end_b):
+            len_square = ((end_b - end_a).length())**2
+            if len_square == 0:
+                return (point - end_a).length()
+            else:
+                t = Vec2.dot(point - end_a, end_b - end_a) / len_square
+                return (point - (end_a + (end_b - end_a) * max(min(t, 1), 0))).length()
+
+        self.control_radius = [-1 for _ in range(self.control_num)]
+        for poly in self.polygons:
+            for i in range(poly.vertex_num):
+                for j in range(self.control_num):
+                    temp = nearest(self.controls[j], poly.vertices[i-1], poly.vertices[i])
+                    if temp < self.control_radius[j] or self.control_radius[j] == -1:
+                        self.control_radius[j] = temp
 
     def scale(self, scale):
         super(Robot, self).scale(scale)
