@@ -165,10 +165,21 @@ class Polygon:
         def edge_collision(a0, a1, b0, b1):
             return side(a0, a1, b0) != side(a0, a1, b1) and side(b0, b1, a0) != side(b0, b1, a1)
 
+        #edge test
         for i in range(a.vertex_num):
             for j in range(b.vertex_num):
                 if edge_collision(a.vertices[i-1], a.vertices[i], b.vertices[j-1], b.vertices[j]):
                     return True
+
+        #contain test
+        for v in a.vertices:
+            if b.contains(v):
+                return True
+
+        for v in b.vertices:
+            if a.contains(v):
+                return True
+
         return False
 
 class Item:
