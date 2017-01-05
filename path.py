@@ -82,7 +82,7 @@ def find_path(scene, robot_index, width, height, border_extend = False, pvalue_e
             diff_value.append([i/size * 50 for i in range(size+1)])
 
     #init conf validity check
-    if not validity_test(robot, scene, width, height):
+    if not validity_test(scene.robot_init[robot_index], scene, width, height) or not validity_test(scene.robot_goal[robot_index], scene, width, height):
         print('robot init conf not valid')
         return [], valid
 
