@@ -36,7 +36,7 @@ def reset():
     if obstacle_filename != '':
         read_obstacle(scene, obstacle_filename)
 
-def draw_data(label, width_c, height_c, scale):
+def draw_data(label, width_c, height_c, scale, filename=''):
     pixmap = QPixmap(width_c, height_c)
     pixmap.fill(Qt.black)
     painter = QPainter(pixmap)
@@ -56,6 +56,9 @@ def draw_data(label, width_c, height_c, scale):
     painter.end()
     label.clear()
     label.setPixmap(pixmap)
+
+    if len(filename) > 0:
+        pixmap.save(filename)
 
 def target_box_update(box, scene):
     box.clear()
@@ -99,9 +102,9 @@ def show_path(total_time = 5):
         init = [tuple(scene.robot_goal[robot_index].init_conf)]
         goal = [tuple(scene.robot_init[robot_index].init_conf)]
         delay = total_time / len(path)
-        for conf in path + init + goal:
+        for i, conf in enumerate(path + init + goal):
             scene.robot_init[robot_index].init_conf = conf
-            draw_data(label, width_c, height_c, scale)
+            draw_data(label, width_c, height_c, scale, 'image/path_{}.jpg'.format(i))
             QApplication.processEvents()
             time.sleep(delay)
 
