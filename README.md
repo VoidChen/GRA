@@ -14,4 +14,4 @@
 - Potential field enhance
 
 ## UI Introduction
-<img src="http://void.moe/graph/GRA_UI_intro.png">
+<img src="https://github.com/VoidChen/GRA/blob/demo/UI_intro.png">
